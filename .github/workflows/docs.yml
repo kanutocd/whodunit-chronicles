@@ -5,6 +5,18 @@ on:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  DOCS_FOLDER: ./docs
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   docs:
     runs-on: ubuntu-latest
@@ -19,8 +31,9 @@ jobs:
 
       - name: Generate YARD documentation
         run: |
-          gem install yard
-          yard doc
+          bundle exec yard doc
+          # Create .nojekyll to bypass Jekyll processing
+          touch ${{ env.DOCS_FOLDER }}/.nojekyll
 
       - name: Check documentation coverage
         run: yard stats --list-undoc
@@ -55,8 +68,9 @@ jobs:
 
       - name: Generate YARD documentation
         run: |
-          gem install yard
-          yard doc
+          bundle exec yard doc
+          # Create .nojekyll to bypass Jekyll processing
+          touch ${{ env.DOCS_FOLDER }}/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -64,7 +78,7 @@ jobs:
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: doc/
+          path: ${{ env.DOCS_FOLDER }}
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -57,3 +57,4 @@ build-iPhoneSimulator/
 /.history
 /docs
 /.vscode
+/adr/*
