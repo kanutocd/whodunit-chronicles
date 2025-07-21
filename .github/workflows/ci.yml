@@ -83,7 +83,12 @@ jobs:
         run: |
           if [ "${{ matrix.database }}" = "postgres" ]; then
             sudo apt-get -yqq install libpq-dev
-            createdb -h localhost -U postgres whodunit_chronicles_test || true
+            # Wait for PostgreSQL to be ready
+            until pg_isready -h localhost -p 5432; do
+              echo "Waiting for PostgreSQL..."
+              sleep 2
+            done
+            echo "PostgreSQL is ready"
           fi
 
       - name: Run integration tests
