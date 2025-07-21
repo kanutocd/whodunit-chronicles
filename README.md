@@ -6,7 +6,7 @@
 [![Ruby Version](https://img.shields.io/badge/ruby-%3E%3D%203.1.0-ruby.svg)](https://www.ruby-lang.org/en/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **The complete historical record of your data**
+> **The complete historical record of your _Whodunit Dun Wat?_ data**
 
 While [Whodunit](https://github.com/kanutocd/whodunit) tracks _who_ made changes, **Chronicles** captures _what_ changed by streaming database events into comprehensive audit trails with **zero Rails application overhead**.
 
