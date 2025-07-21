@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    whodunit-chronicles (0.1.0)
+    whodunit-chronicles (0.1.0.pre)
       concurrent-ruby (~> 1.2)
       dry-configurable (~> 1.0)
       dry-logger (~> 1.0)
