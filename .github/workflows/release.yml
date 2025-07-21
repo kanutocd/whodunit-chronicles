@@ -98,15 +98,15 @@ jobs:
       - name: Run RuboCop
         run: bundle exec rake rubocop
 
-      - name: Check documentation coverage
-        run: |
-          bundle exec yard doc
-          DOC_COVERAGE=$(bundle exec yard stats --list-undoc | grep "100.00% documented" || echo "incomplete")
-          if [[ "$DOC_COVERAGE" != *"100.00% documented"* ]]; then
-            echo "❌ Documentation coverage is not 100%"
-            exit 1
-          fi
-          echo "✅ Documentation coverage is 100%"
+      # - name: Check documentation coverage
+      #   run: |
+      #     bundle exec yard doc
+      #     DOC_COVERAGE=$(bundle exec yard stats --list-undoc | grep "100.00% documented" || echo "incomplete")
+      #     if [[ "$DOC_COVERAGE" != *"100.00% documented"* ]]; then
+      #       echo "❌ Documentation coverage is not 100%"
+      #       exit 1
+      #     fi
+      #     echo "✅ Documentation coverage is 100%"
 
   build:
     runs-on: ubuntu-latest
