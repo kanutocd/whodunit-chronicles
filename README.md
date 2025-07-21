@@ -1,2 +1,3 @@
-# whodunit-chronicles
-WHODUNIT-CHRONICLES - THE COMPLETE HISTORICAL RECORD OF YOUR DATA of Whodunit Did What
+# Whodunit-Chronicles
+
+Whodunit-Chronicles - The complete historical record of `Whodunit` Did What Data
