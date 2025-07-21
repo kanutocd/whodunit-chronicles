@@ -13,7 +13,6 @@ require_relative 'chronicles/service'
 
 # Adapters
 require_relative 'chronicles/adapters/postgresql'
-require_relative 'chronicles/adapters/mysql'
 
 module Whodunit
   # Chronicles - The complete historical record of `whodunit did what?` data

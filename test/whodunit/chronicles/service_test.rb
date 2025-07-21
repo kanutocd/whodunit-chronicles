@@ -129,28 +129,6 @@ module Whodunit
         assert_instance_of Adapters::PostgreSQL, adapter
       end
 
-      def test_build_adapter_mysql
-        Chronicles.configure { |config| config.adapter = :mysql }
-        service = Service.new(logger: mock_logger)
-
-        adapter = service.send(:build_adapter)
-
-        assert_instance_of Adapters::MySQL, adapter
-      ensure
-        Chronicles.configure { |config| config.adapter = :postgresql }
-      end
-
-      def test_build_adapter_mariadb
-        Chronicles.configure { |config| config.adapter = :mariadb }
-        service = Service.new(logger: mock_logger)
-
-        adapter = service.send(:build_adapter)
-
-        assert_instance_of Adapters::MySQL, adapter
-      ensure
-        Chronicles.configure { |config| config.adapter = :postgresql }
-      end
-
       def test_build_adapter_unsupported
         Chronicles.configure { |config| config.adapter = :oracle }
 

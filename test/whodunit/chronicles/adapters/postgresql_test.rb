@@ -17,8 +17,8 @@ module Whodunit
         def test_initialization
           adapter = PostgreSQL.new(logger: mock_logger)
 
-          assert_equal 'whodunit_audit', adapter.publication_name
-          assert_equal 'whodunit_audit_slot', adapter.slot_name
+          assert_equal 'whodunit_chronicles', adapter.publication_name
+          assert_equal 'whodunit_chronicles_slot', adapter.slot_name
         end
 
         def test_initialization_with_custom_options

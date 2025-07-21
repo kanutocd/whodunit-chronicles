@@ -119,8 +119,6 @@ module Whodunit
         case Chronicles.config.adapter
         when :postgresql
           Adapters::PostgreSQL.new(logger: logger)
-        when :mysql, :mariadb
-          Adapters::MySQL.new(logger: logger)
         else
           raise ConfigurationError, "Unsupported adapter: #{Chronicles.config.adapter}"
         end
