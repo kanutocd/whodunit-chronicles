@@ -44,7 +44,6 @@ Gem::Specification.new do |spec|
   # spec.add_dependency 'trilogy', '~> 2.9'
 
   # Development dependencies
-  spec.add_development_dependency 'bundler', '~> 2.4'
   spec.add_development_dependency 'kramdown', '~> 2.5'
   spec.add_development_dependency 'minitest', '~> 5.20'
   spec.add_development_dependency 'mocha', '~> 2.1'

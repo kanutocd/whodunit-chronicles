@@ -86,15 +86,13 @@ GEM
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
     yard (0.9.37)
-    zeitwerk (2.7.3)
+    zeitwerk (2.6.18)
 
 PLATFORMS
-  ruby
   x86_64-linux
 
 DEPENDENCIES
   brakeman (~> 6.0)
-  bundler (~> 2.4)
   bundler-audit (~> 0.9)
   kramdown (~> 2.5)
   minitest (~> 5.20)
@@ -109,4 +107,4 @@ DEPENDENCIES
   yard (~> 0.9)
 
 BUNDLED WITH
-   2.7.0
+   2.3.27
