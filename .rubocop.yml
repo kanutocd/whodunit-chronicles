@@ -1,0 +1,92 @@
+# Ruby version
+AllCops:
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'bin/**/*'
+    - 'node_modules/**/*'
+
+# Use plugins for extensions
+plugins:
+  - rubocop-performance
+  - rubocop-minitest
+
+# Layout cops
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns: ['\A\s*#']
+
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: false
+
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+# Metrics cops - relax for complex business logic
+Metrics/ClassLength:
+  Max: 250  # Allow larger classes for database adapters and processors
+  Exclude:
+    - 'test/**/*'  # Test classes can be longer
+
+Metrics/MethodLength:
+  Max: 50  # Allow longer methods for SQL generation and complex logic
+
+Metrics/AbcSize:
+  Max: 40  # Allow higher complexity for database operations
+
+Metrics/CyclomaticComplexity:
+  Max: 15  # Allow more complex conditional logic
+
+Metrics/PerceivedComplexity:
+  Max: 15
+
+Metrics/ParameterLists:
+  Max: 12  # Allow more params for configuration objects and event initialization
+
+# Style cops
+Style/Documentation:
+  Enabled: false  # We have YARD docs
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+# Naming
+Naming/FileName:
+  Exclude:
+    - 'lib/whodunit-chronicles.rb'  # Main gem file
+
+# Gemspec
+Gemspec/DevelopmentDependencies:
+  Enabled: false  # We're fine with dev dependencies in gemspec
+
+# Minitest specific cops
+Minitest/MultipleAssertions:
+  Max: 10  # Allow more assertions in comprehensive tests
+
+Minitest/AssertNil:
+  Enabled: false  # Prefer assert_nil over assert_equal(nil, ...)
+
+# Performance cops
+Performance/Casecmp:
+  Enabled: true
+
+Performance/StringReplacement:
+  Enabled: true
