@@ -54,6 +54,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop-minitest', '~> 0.34'
   spec.add_development_dependency 'rubocop-performance', '~> 1.19'
   spec.add_development_dependency 'simplecov', '~> 0.22'
+  spec.add_development_dependency 'simplecov-cobertura', '~> 3.0'
   spec.add_development_dependency 'yard', '~> 0.9'
 
   # Security scanning dependencies
