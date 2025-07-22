@@ -30,6 +30,8 @@ Chronicles excels at transforming database changes into business intelligence. H
 
 #### 1. Basic Audit Trail Integration
 
+---
+
 Perfect for applications that need comprehensive change tracking alongside Whodunit's user attribution:
 
 ```ruby
@@ -146,16 +148,22 @@ The recruitment analytics processor creates comprehensive Grafana dashboards for
 <div align="center">
 
 **Campaign Performance Analytics**
-![Campaign Performance Analytics](examples/images/campaign-performance-analytics.png)
-_Track campaign ROI, cost-per-hire by channel, and conversion rates across marketing sources_
+<a href="examples/images/campaign-performance-analytics.png" title="Click to view full size image">
+<img src="examples/images/campaign-performance-analytics.png" width="300" />
+</a>
+*Track campaign ROI, cost-per-hire by channel, and conversion rates across marketing sources*
 
-**Candidate Journey Analytics**
-![Candidate Journey Analytics](examples/images/candidate-journey-analytics.png)
-_Monitor candidate engagement, funnel conversion rates, and application completion patterns_
+**Candidate Journey Analytics** 
+<a href="examples/images/candidate-journey-analytics.png" title="Click to view full size image">
+<img src="examples/images/candidate-journey-analytics.png" width="300" />
+</a>
+*Monitor candidate engagement, funnel conversion rates, and application completion patterns*
 
 **Recruitment Funnel Analytics**
-![Recruitment Funnel Analytics](examples/images/recruitment-funnel-analytics.png)
-_Analyze hiring pipeline progression, department performance, and time-series trends_
+<a href="examples/images/recruitment-funnel-analytics.png" title="Click to view full size image">
+<img src="examples/images/recruitment-funnel-analytics.png" width="300" />
+</a>
+*Analyze hiring pipeline progression, department performance, and time-series trends*
 
 </div>
 
