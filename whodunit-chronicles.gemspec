@@ -49,6 +49,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mocha', '~> 2.1'
   spec.add_development_dependency 'pry', '~> 0.14'
   spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'rspec_junit_formatter', '~> 0.6.0'
   spec.add_development_dependency 'rubocop', '~> 1.60'
   spec.add_development_dependency 'rubocop-minitest', '~> 0.34'
   spec.add_development_dependency 'rubocop-performance', '~> 1.19'
