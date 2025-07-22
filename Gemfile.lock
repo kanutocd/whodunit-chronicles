@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    whodunit-chronicles (0.1.0.pre)
+    whodunit-chronicles (0.1.0)
       concurrent-ruby (~> 1.2)
       dry-configurable (~> 1.0)
       dry-logger (~> 1.0)
@@ -86,7 +86,7 @@ GEM
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
     yard (0.9.37)
-    zeitwerk (2.6.18)
+    zeitwerk (2.7.3)
 
 PLATFORMS
   x86_64-linux
