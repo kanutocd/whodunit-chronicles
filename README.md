@@ -151,19 +151,19 @@ The recruitment analytics processor creates comprehensive Grafana dashboards for
 <a href="examples/images/campaign-performance-analytics.png" title="Click to view full size image">
 <img src="examples/images/campaign-performance-analytics.png" width="300" />
 </a>
-*Track campaign ROI, cost-per-hire by channel, and conversion rates across marketing sources*
+_Track campaign ROI, cost-per-hire by channel, and conversion rates across marketing sources_
 
-**Candidate Journey Analytics** 
+**Candidate Journey Analytics**
 <a href="examples/images/candidate-journey-analytics.png" title="Click to view full size image">
 <img src="examples/images/candidate-journey-analytics.png" width="300" />
 </a>
-*Monitor candidate engagement, funnel conversion rates, and application completion patterns*
+_Monitor candidate engagement, funnel conversion rates, and application completion patterns_
 
 **Recruitment Funnel Analytics**
 <a href="examples/images/recruitment-funnel-analytics.png" title="Click to view full size image">
 <img src="examples/images/recruitment-funnel-analytics.png" width="300" />
 </a>
-*Analyze hiring pipeline progression, department performance, and time-series trends*
+_Analyze hiring pipeline progression, department performance, and time-series trends_
 
 </div>
 
