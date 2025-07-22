@@ -4,6 +4,28 @@ require 'simplecov'
 SimpleCov.start do
   add_filter '/test/'
   add_filter '/vendor/'
+
+  # Require 100% coverage (temporarily set to 93 while working towards 100%)
+  minimum_coverage 93
+
+  # Coverage output directory
+  coverage_dir 'coverage'
+
+  # Enable branch coverage for better analysis
+  enable_coverage :branch
+
+  # Generate multiple formats for CI
+  if ENV['CI'] || ENV['COVERAGE']
+    require 'simplecov-cobertura'
+
+    SimpleCov.formatters = [
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::CoberturaFormatter,
+    ]
+  end
+
+  # Exclude generated or boilerplate files
+  add_filter 'lib/whodunit/version.rb' # Simple version constant
 end
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
