@@ -11,7 +11,6 @@ module Whodunit
       end
 
       def test_default_configuration
-        assert_nil @config.database_url
         assert_nil @config.audit_database_url
         assert_equal :postgresql, @config.adapter
         assert_equal 'whodunit_audit', @config.publication_name

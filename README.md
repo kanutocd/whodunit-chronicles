@@ -20,7 +20,7 @@ While [Whodunit](https://github.com/kanutocd/whodunit) tracks _who_ made changes
 - **⚡ Thread-Safe**: Concurrent processing with configurable thread pools
 - **🛡️ Resilient**: Built-in error handling, retry logic, and monitoring
 - **📊 Complete Audit Trail**: Captures INSERT, UPDATE, DELETE with full before/after data
-- **🧪 VERY Soon to be Production Ready**: 94%+ test coverage with comprehensive error scenarios
+- **🧪 Code Coverage**: 94%+ test coverage with comprehensive error scenarios
 
 ## 🚀 Quick Start
 
