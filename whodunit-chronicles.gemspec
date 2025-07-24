@@ -41,7 +41,7 @@ Gem::Specification.new do |spec|
   # Database dependencies
   spec.add_dependency 'pg', '~> 1.5'
   # Driver for MySQL-compatible database
-  # spec.add_dependency 'trilogy', '~> 2.9'
+  spec.add_dependency 'trilogy', '~> 2.9'
 
   # Development dependencies
   spec.add_development_dependency 'kramdown', '~> 2.5'

@@ -8,11 +8,15 @@ require_relative 'chronicles/version'
 require_relative 'chronicles/configuration'
 require_relative 'chronicles/change_event'
 require_relative 'chronicles/stream_adapter'
-require_relative 'chronicles/audit_processor'
+require_relative 'chronicles/connection'
+require_relative 'chronicles/table'
+require_relative 'chronicles/persistence'
+require_relative 'chronicles/processor'
 require_relative 'chronicles/service'
 
 # Adapters
 require_relative 'chronicles/adapters/postgresql'
+require_relative 'chronicles/adapters/mysql'
 
 module Whodunit
   # Chronicles - The complete historical record of `whodunit did what?` data
@@ -28,8 +32,11 @@ module Whodunit
     setting :database_url, default: ENV.fetch('DATABASE_URL', nil)
     setting :audit_database_url, default: ENV.fetch('AUDIT_DATABASE_URL', nil)
     setting :adapter, default: :postgresql
+    # PostgreSQL-specific settings
     setting :publication_name, default: 'whodunit_audit'
     setting :replication_slot_name, default: 'whodunit_audit_slot'
+    # MySQL-specific settings
+    setting :mysql_server_id, default: 1001
     setting :batch_size, default: 100
     setting :max_retry_attempts, default: 3
     setting :retry_delay, default: 5
@@ -46,6 +53,9 @@ module Whodunit
     #     config.database_url = "postgresql://localhost/myapp"
     #     config.audit_database_url = "postgresql://localhost/myapp_audit"
     #     config.adapter = :postgresql
+    #     # OR for MySQL:
+    #     config.adapter = :mysql
+    #     config.mysql_server_id = 1001
     #   end
     def self.configure
       yield(config) if block_given?
