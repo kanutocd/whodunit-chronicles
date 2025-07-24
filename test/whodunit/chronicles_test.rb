@@ -52,10 +52,11 @@ module Whodunit
     def test_main_classes_defined
       assert defined?(Whodunit::Chronicles::ChangeEvent)
       assert defined?(Whodunit::Chronicles::StreamAdapter)
-      assert defined?(Whodunit::Chronicles::AuditProcessor)
+      assert defined?(Whodunit::Chronicles::Processor)
       assert defined?(Whodunit::Chronicles::Service)
       assert defined?(Whodunit::Chronicles::Configuration)
       assert defined?(Whodunit::Chronicles::Adapters::PostgreSQL)
+      assert defined?(Whodunit::Chronicles::Adapters::MySQL)
     end
 
     def test_start_creates_service

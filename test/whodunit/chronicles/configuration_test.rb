@@ -50,12 +50,28 @@ module Whodunit
 
       def test_validation_fails_with_invalid_adapter
         @config.database_url = 'postgresql://localhost/test'
-        @config.adapter = :mysql
+        @config.adapter = :invalid
 
         error = assert_raises Whodunit::Chronicles::ConfigurationError do
           @config.validate!
         end
-        assert_includes error.message, 'adapter must be :postgresql'
+        assert_includes error.message, 'adapter must be :postgresql or :mysql'
+      end
+
+      def test_validation_passes_with_mysql_adapter
+        @config.database_url = 'mysql://localhost/test'
+        @config.adapter = :mysql
+
+        # Should not raise
+        @config.validate!
+      end
+
+      def test_validation_passes_with_postgresql_adapter
+        @config.database_url = 'postgresql://localhost/test'
+        @config.adapter = :postgresql
+
+        # Should not raise
+        @config.validate!
       end
 
       def test_validation_fails_with_invalid_batch_size
@@ -88,64 +104,64 @@ module Whodunit
         assert_includes error.message, 'replication_slot_name must be a valid PostgreSQL identifier'
       end
 
-      def test_audit_table_with_no_filters
-        assert @config.audit_table?('users', 'public')
-        assert @config.audit_table?('orders', 'sales')
+      def test_chronicle_table_with_no_filters
+        assert @config.chronicle_table?('users', 'public')
+        assert @config.chronicle_table?('orders', 'sales')
       end
 
-      def test_audit_table_with_schema_filter_array
+      def test_chronicle_table_with_schema_filter_array
         @config.schema_filter = %w[public sales]
 
-        assert @config.audit_table?('users', 'public')
-        assert @config.audit_table?('orders', 'sales')
-        refute @config.audit_table?('logs', 'audit')
+        assert @config.chronicle_table?('users', 'public')
+        assert @config.chronicle_table?('orders', 'sales')
+        refute @config.chronicle_table?('logs', 'audit')
       end
 
-      def test_audit_table_with_schema_filter_string
+      def test_chronicle_table_with_schema_filter_string
         @config.schema_filter = 'public'
 
-        assert @config.audit_table?('users', 'public')
-        refute @config.audit_table?('orders', 'sales')
+        assert @config.chronicle_table?('users', 'public')
+        refute @config.chronicle_table?('orders', 'sales')
       end
 
-      def test_audit_table_with_schema_filter_proc
+      def test_chronicle_table_with_schema_filter_proc
         @config.schema_filter = ->(schema) { schema == 'public' }
 
-        assert @config.audit_table?('users', 'public')
-        refute @config.audit_table?('orders', 'sales')
+        assert @config.chronicle_table?('users', 'public')
+        refute @config.chronicle_table?('orders', 'sales')
       end
 
-      def test_audit_table_with_table_filter_array
+      def test_chronicle_table_with_table_filter_array
         @config.table_filter = %w[users orders]
 
-        assert @config.audit_table?('users', 'public')
-        assert @config.audit_table?('orders', 'public')
-        refute @config.audit_table?('logs', 'public')
+        assert @config.chronicle_table?('users', 'public')
+        assert @config.chronicle_table?('orders', 'public')
+        refute @config.chronicle_table?('logs', 'public')
       end
 
-      def test_audit_table_with_table_filter_regexp
+      def test_chronicle_table_with_table_filter_regexp
         @config.table_filter = /^user/
 
-        assert @config.audit_table?('users', 'public')
-        assert @config.audit_table?('user_profiles', 'public')
-        refute @config.audit_table?('orders', 'public')
+        assert @config.chronicle_table?('users', 'public')
+        assert @config.chronicle_table?('user_profiles', 'public')
+        refute @config.chronicle_table?('orders', 'public')
       end
 
-      def test_audit_table_with_table_filter_proc
+      def test_chronicle_table_with_table_filter_proc
         @config.table_filter = ->(table) { table.start_with?('user') }
 
-        assert @config.audit_table?('users', 'public')
-        assert @config.audit_table?('user_profiles', 'public')
-        refute @config.audit_table?('orders', 'public')
+        assert @config.chronicle_table?('users', 'public')
+        assert @config.chronicle_table?('user_profiles', 'public')
+        refute @config.chronicle_table?('orders', 'public')
       end
 
-      def test_audit_table_with_combined_filters
+      def test_chronicle_table_with_combined_filters
         @config.schema_filter = %w[public]
         @config.table_filter = %w[users orders]
 
-        assert @config.audit_table?('users', 'public')
-        refute @config.audit_table?('users', 'audit')
-        refute @config.audit_table?('logs', 'public')
+        assert @config.chronicle_table?('users', 'public')
+        refute @config.chronicle_table?('users', 'audit')
+        refute @config.chronicle_table?('logs', 'public')
       end
     end
   end
