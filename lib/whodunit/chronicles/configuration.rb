@@ -30,21 +30,20 @@ module Whodunit
       # @raise [ConfigurationError] if configuration is invalid
       def validate!
         raise ConfigurationError, 'database_url is required' if database_url.nil?
-        raise ConfigurationError, 'adapter must be :postgresql' unless adapter == :postgresql
+        raise ConfigurationError, 'adapter must be :postgresql or :mysql' unless %i[postgresql mysql].include?(adapter)
         raise ConfigurationError, 'batch_size must be positive' unless batch_size.positive?
         raise ConfigurationError, 'max_retry_attempts must be positive' unless max_retry_attempts.positive?
         raise ConfigurationError, 'retry_delay must be positive' unless retry_delay.positive?
 
-        validate_publication_name!
-        validate_slot_name!
+        validate_adapter_specific_settings!
       end
 
-      # Check if a table should be audited based on filters
+      # Check if a table should be chronicled based on filters
       #
       # @param table_name [String] The table name to check
       # @param schema_name [String] The schema name to check
-      # @return [Boolean] true if the table should be audited
-      def audit_table?(table_name, schema_name = 'public')
+      # @return [Boolean] true if the table should be chronicled
+      def chronicle_table?(table_name, schema_name = 'public')
         return false if filtered_by_schema?(schema_name)
         return false if filtered_by_table?(table_name)
 
@@ -53,16 +52,28 @@ module Whodunit
 
       private
 
-      def validate_publication_name!
-        return if /\A[a-zA-Z_][a-zA-Z0-9_]*\z/.match?(publication_name)
-
-        raise ConfigurationError, 'publication_name must be a valid PostgreSQL identifier'
+      def validate_adapter_specific_settings!
+        case adapter
+        when :postgresql
+          validate_postgresql_settings!
+        when :mysql
+          validate_mysql_settings!
+        end
       end
 
-      def validate_slot_name!
-        return if /\A[a-zA-Z_][a-zA-Z0-9_]*\z/.match?(replication_slot_name)
+      def validate_postgresql_settings!
+        if publication_name && !/\A[a-zA-Z_][a-zA-Z0-9_]*\z/.match?(publication_name)
+          raise ConfigurationError, 'publication_name must be a valid PostgreSQL identifier'
+        end
+
+        return unless replication_slot_name && !/\A[a-zA-Z_][a-zA-Z0-9_]*\z/.match?(replication_slot_name)
 
         raise ConfigurationError, 'replication_slot_name must be a valid PostgreSQL identifier'
+      end
+
+      def validate_mysql_settings!
+        # MySQL-specific validations can be added here in the future
+        # For now, MySQL settings are less restrictive
       end
 
       def filtered_by_schema?(schema_name)
