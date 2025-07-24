@@ -14,9 +14,9 @@ While [Whodunit](https://github.com/kanutocd/whodunit) tracks _who_ made changes
 
 ## ✨ Features
 
-- **🚄 Zero-Latency Streaming**: PostgreSQL logical replication
+- **🚄 Zero-Latency Streaming**: PostgreSQL logical replication + MySQL/MariaDB binary log streaming
 - **🔄 Zero Application Overhead**: No Rails callbacks or Active Record hooks required
-- **🏗️ Database Agnostic**: Abstract adapter pattern supports PostgreSQL (TODO: MySQL/MariaDB support)
+- **🏗️ Database Agnostic**: Abstract adapter pattern supports PostgreSQL and MySQL/MariaDB
 - **⚡ Thread-Safe**: Concurrent processing with configurable thread pools
 - **🛡️ Resilient**: Built-in error handling, retry logic, and monitoring
 - **📊 Complete Audit Trail**: Captures INSERT, UPDATE, DELETE with full before/after data
@@ -36,7 +36,7 @@ Perfect for applications that need comprehensive change tracking alongside Whodu
 
 ```ruby
 # Basic setup for user activity tracking
-class BasicAuditProcessor < Whodunit::Chronicles::AuditProcessor
+class BasicProcessor < Whodunit::Chronicles::Processor
   def build_chronicles_record(change_event)
     super.tap do |record|
       # Add basic business context
@@ -66,7 +66,7 @@ Sophisticated business intelligence for talent acquisition platforms:
 
 ```ruby
 # Advanced processor for recruitment metrics
-class RecruitmentAnalyticsProcessor < Whodunit::Chronicles::AuditProcessor
+class RecruitmentAnalyticsProcessor < Whodunit::Chronicles::Processor
   def build_chronicles_record(change_event)
     super.tap do |record|
       # Add recruitment-specific business metrics
@@ -188,13 +188,23 @@ gem install whodunit-chronicles
 ```ruby
 require 'whodunit/chronicles'
 
-# PostgreSQL Configuration
+# Database Configuration
+
+## PostgreSQL Configuration
 Whodunit::Chronicles.configure do |config|
   config.adapter = :postgresql
   config.database_url = 'postgresql://localhost/myapp_production'
   config.audit_database_url = 'postgresql://localhost/myapp'
   config.publication_name = 'myapp_chronicles'
   config.replication_slot_name = 'myapp_chronicles_slot'
+end
+
+## MySQL/MariaDB Configuration
+Whodunit::Chronicles.configure do |config|
+  config.adapter = :mysql
+  config.database_url = 'mysql://user:password@localhost/myapp_production'
+  config.audit_database_url = 'mysql://user:password@localhost/myapp_audit'
+  config.mysql_server_id = 1001  # Unique server ID for replication
 end
 
 # Create and start the service
@@ -212,7 +222,7 @@ service.teardown!  # Clean up database objects
 
 ## 🏗️ Architecture
 
-Chronicles uses **PostgreSQL logical replication** (TODO: **MySQL/MariaDB binary log streaming**) to capture database changes without impacting your application:
+Chronicles uses **PostgreSQL logical replication** and **MySQL/MariaDB binary log streaming** to capture database changes without impacting your application:
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -233,9 +243,9 @@ Chronicles uses **PostgreSQL logical replication** (TODO: **MySQL/MariaDB binary
 
 ### Core Components
 
-- **StreamAdapter**: Database-specific change streaming (PostgreSQL, MySQL/MariaDB)
+- **StreamAdapter**: Database-specific change streaming (PostgreSQL logical replication, MySQL/MariaDB binary log streaming)
 - **ChangeEvent**: Unified change representation across adapters
-- **AuditProcessor**: Transforms changes into searchable audit records
+- **Processor**: Transforms changes into searchable audit records
 - **Service**: Orchestrates streaming with error handling and retry logic
 
 ## ⚙️ Configuration
@@ -311,7 +321,7 @@ Transform database changes into actionable business intelligence with features l
 #### Analytics-Focused Processor
 
 ```ruby
-class AnalyticsProcessor < Whodunit::Chronicles::AuditProcessor
+class AnalyticsProcessor < Whodunit::Chronicles::Processor
   def build_chronicles_record(change_event)
     super.tap do |record|
       # Add business metrics
@@ -365,7 +375,7 @@ end
 #### Grafana Dashboard Ready
 
 ```ruby
-class GrafanaProcessor < Whodunit::Chronicles::AuditProcessor
+class GrafanaProcessor < Whodunit::Chronicles::Processor
   def build_chronicles_record(change_event)
     {
       # Core metrics for Grafana time series
@@ -399,7 +409,7 @@ end
 #### Real-Time Alerts Processor
 
 ```ruby
-class AlertingProcessor < Whodunit::Chronicles::AuditProcessor
+class AlertingProcessor < Whodunit::Chronicles::Processor
   def process(change_event)
     record = build_chronicles_record(change_event)
 
@@ -615,13 +625,14 @@ We especially welcome custom processors for different business domains. Consider
 
 - **Ruby**: 3.1.0 or higher
 - **PostgreSQL**: 10.0 or higher (with logical replication enabled)
+- **MySQL/MariaDB**: 5.6+ (with binary logging enabled)
 
 ## 🗺️ Roadmap
 
 - [ ] **Prometheus Metrics**: Production monitoring integration (with complete codebase included in examples/)
 - [ ] **Advanced Example Apps**: Real-world use cases with complete monitoring stack (with complete codebase included in examples/)
 - [ ] **Custom Analytics Processors**: Business intelligence and real-time monitoring (with complete codebase included in examples/)
-- [ ] **MySQL/MariaDB Support**: MySQL/MariaDB databases binlog streaming adapter
+- [x] **MySQL/MariaDB Support**: MySQL/MariaDB databases binlog streaming adapter
 - [ ] **Redis Streams**: Alternative lightweight streaming backend
 - [ ] **Compression**: Optional audit record compression
 - [ ] **Retention Policies**: Automated audit record cleanup
@@ -633,6 +644,7 @@ We especially welcome custom processors for different business domains. Consider
 - **[Configuration Guide](docs/configuration-todo.md)**
 - **[Architecture Deep Dive](docs/architecture-todo.md)**
 - **[PostgreSQL Setup](docs/postgresql-setup-todo.md)**
+- **[MySQL/MariaDB Setup](docs/mysql-setup.md)**
 - **[Production Deployment](docs/production-todo.md)**
 
 ## 📄 License

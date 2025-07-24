@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Core Architecture**: Complete zero-latency audit streaming implementation
 - **PostgreSQL Adapter**: Logical replication streaming with WAL decoding
 - **ChangeEvent System**: Unified change representation across database adapters
-- **AuditProcessor**: Intelligent transformation of changes into audit records
+- **Processor**: Intelligent transformation of changes into audit records
 - **Configuration Management**: Comprehensive settings with validation using dry-configurable
 - **Service Orchestration**: Thread-safe service with error handling and retry logic
 - **Abstract Adapter Pattern**: Extensible design supporting multiple database systems
