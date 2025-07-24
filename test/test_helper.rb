@@ -41,11 +41,13 @@ module Whodunit
     module TestHelpers
       def setup
         super
-        # Reset configuration for each test - just configure defaults
+        # Reset configuration for each test - configure defaults with CI adapter override
+        adapter = ENV['WHODUNIT_CHRONICLES_ADAPTER']&.to_sym || :postgresql
+
         Chronicles.configure do |config|
           config.database_url = nil
           config.audit_database_url = nil
-          config.adapter = :postgresql
+          config.adapter = adapter
           config.publication_name = 'whodunit_chronicles'
           config.replication_slot_name = 'whodunit_chronicles_slot'
           config.batch_size = 100
