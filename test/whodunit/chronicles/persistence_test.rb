@@ -204,19 +204,19 @@ class PersistenceTest < Minitest::Test
     record1 = @sample_record.dup
     record2 = {
       table_name: 'posts',
-      schema_name: 'public', 
+      schema_name: 'public',
       record_id: { 'id' => 2 },
       action: 'UPDATE',
       old_data: { 'id' => 2, 'name' => 'Jane' },
       new_data: { 'id' => 2, 'name' => 'John' },
-      changes: { 'name' => ['Jane', 'John'] },
+      changes: { 'name' => %w[Jane John] },
       user_id: 10,
       user_type: 'User',
       transaction_id: 'txn_123',
       sequence_number: 2,
       occurred_at: Time.now,
       created_at: Time.now,
-      metadata: { 'source' => 'test' }
+      metadata: { 'source' => 'test' },
     }
 
     records = [record1, record2]
@@ -234,15 +234,16 @@ class PersistenceTest < Minitest::Test
       # First record (record1)
       'users', 'public', '{"id":1}', 'INSERT', nil, '{"id":1,"name":"John"}', '{"name":[null,"John"]}',
       10, 'User', 'txn_123', 1, record1[:occurred_at], record1[:created_at], '{"source":"test"}',
-      # Second record (record2)  
-      'posts', 'public', '{"id":2}', 'UPDATE', '{"id":2,"name":"Jane"}', '{"id":2,"name":"John"}', '{"name":["Jane","John"]}',
+      # Second record (record2)
+      'posts', 'public', '{"id":2}', 'UPDATE', '{"id":2,"name":"Jane"}', '{"id":2,"name":"John"}',
+      '{"name":["Jane","John"]}',
       10, 'User', 'txn_123', 2, record2[:occurred_at], record2[:created_at], '{"source":"test"}'
     ]
 
     mock_result = mock('result')
     mock_result.expects(:each_with_index).multiple_yields(
       [{ 'id' => '100' }, 0],
-      [{ 'id' => '101' }, 1]
+      [{ 'id' => '101' }, 1],
     )
     mock_result.expects(:clear)
 

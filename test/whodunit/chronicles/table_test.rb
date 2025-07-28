@@ -67,18 +67,18 @@ class TableTest < Minitest::Test
     # Just test that exec is called with some SQL containing key elements
     mock_connection.expects(:exec).once.with do |sql|
       sql.is_a?(String) &&
-      sql.include?('CREATE TABLE IF NOT EXISTS whodunit_chronicles_audits') &&
-      sql.include?('id BIGSERIAL PRIMARY KEY') &&
-      sql.include?('record_id JSONB') &&
-      sql.include?('CONSTRAINT valid_data_for_action') &&
-      sql.include?('CREATE INDEX CONCURRENTLY')
+        sql.include?('CREATE TABLE IF NOT EXISTS whodunit_chronicles_audits') &&
+        sql.include?('id BIGSERIAL PRIMARY KEY') &&
+        sql.include?('record_id JSONB') &&
+        sql.include?('CONSTRAINT valid_data_for_action') &&
+        sql.include?('CREATE INDEX CONCURRENTLY')
     end
 
     @instance.create_postgresql_table
   end
 
   def test_create_postgresql_table_handles_already_exists_error
-    skip "PG::Error mocking is complex - functionality tested in integration"
+    skip 'PG::Error mocking is complex - functionality tested in integration'
     # This functionality is covered by integration tests where real PG::Error is available
   end
 
@@ -110,11 +110,11 @@ class TableTest < Minitest::Test
     # Just test that query is called with some SQL containing key elements
     mock_connection.expects(:query).once.with do |sql|
       sql.is_a?(String) &&
-      sql.include?('CREATE TABLE IF NOT EXISTS whodunit_chronicles_audits') &&
-      sql.include?('id BIGINT AUTO_INCREMENT PRIMARY KEY') &&
-      sql.include?('record_id JSON') &&
-      sql.include?('CONSTRAINT valid_data_for_action') &&
-      sql.include?('INDEX idx_chronicles_audits_table_record')
+        sql.include?('CREATE TABLE IF NOT EXISTS whodunit_chronicles_audits') &&
+        sql.include?('id BIGINT AUTO_INCREMENT PRIMARY KEY') &&
+        sql.include?('record_id JSON') &&
+        sql.include?('CONSTRAINT valid_data_for_action') &&
+        sql.include?('INDEX idx_chronicles_audits_table_record')
     end
 
     @instance.create_mysql_table

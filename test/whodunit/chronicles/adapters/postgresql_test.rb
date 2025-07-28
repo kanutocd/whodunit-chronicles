@@ -297,7 +297,7 @@ module Whodunit
 
           # Mock PG.connect directly
           PG.expects(:connect).with('postgresql://localhost/test').returns(mock_connection)
-          
+
           # Mock PG::BasicTypeMapForResults
           PG::BasicTypeMapForResults.expects(:new).with(mock_connection).returns(mock_type_map)
 
@@ -319,7 +319,7 @@ module Whodunit
 
           # Mock PG.connect directly
           PG.expects(:connect).with('postgresql://localhost/test').returns(mock_connection)
-          
+
           # Mock PG::BasicTypeMapForResults
           PG::BasicTypeMapForResults.expects(:new).with(mock_connection).returns(mock_type_map)
 
@@ -406,57 +406,13 @@ module Whodunit
         end
 
         def test_stream_changes_executes_copy_and_processes_data
-          skip "Complex streaming test requires integration testing with real PostgreSQL connection"
-          mock_replication_connection = mock('replication_connection')
-          @adapter.instance_variable_set(:@replication_connection, mock_replication_connection)
-          
-          # Mock connection for confirmed_flush_lsn calls
-          mock_connection = mock('connection')
-          mock_result = mock('result')
-          mock_result.stubs(:ntuples).returns(0)
-          mock_result.stubs(:clear)
-          mock_connection.stubs(:exec_params).returns(mock_result)
-          @adapter.instance_variable_set(:@connection, mock_connection)
-
-          # Mock the copy statement execution
-          copy_sql = @adapter.send(:build_copy_statement)
-          mock_replication_connection.expects(:exec).with(copy_sql)
-
-          # Mock get_copy_data calls - simulate some data then end
-          mock_replication_connection.expects(:get_copy_data).with(async: false).returns('wal_data_1')
-          mock_replication_connection.expects(:get_copy_data).with(async: false).returns('wal_data_2')
-          mock_replication_connection.expects(:get_copy_data).with(async: false).returns(nil) # End streaming
-
-          # Mock running? to return true for the loop iterations (it's called 3 times in total)
-          @adapter.expects(:running?).returns(true).times(3)
-
-          processed_events = []
-          
-          # Create mock events that are truthy and distinct
-          event1 = { id: 1, table: 'users', action: 'INSERT' }
-          event2 = { id: 2, table: 'posts', action: 'UPDATE' }
-          
-          # Mock parse_logical_message to return these events
-          @adapter.expects(:parse_logical_message).with('wal_data_1').returns(event1)
-          @adapter.expects(:parse_logical_message).with('wal_data_2').returns(event2)
-          
-          # Also stub the log method to avoid any issues with logging
-          @adapter.stubs(:log)
-
-          @adapter.send(:stream_changes) do |event|
-            processed_events << event
-          end
-
-          # Verify we got both events
-          assert_equal 2, processed_events.size
-          assert_equal event1, processed_events[0]
-          assert_equal event2, processed_events[1]
+          skip 'Complex streaming test requires integration testing with real PostgreSQL connection'
         end
 
         def test_stream_changes_stops_when_no_more_data
           mock_replication_connection = mock('replication_connection')
           @adapter.instance_variable_set(:@replication_connection, mock_replication_connection)
-          
+
           # Mock connection for confirmed_flush_lsn calls
           mock_connection = mock('connection')
           mock_result = mock('result')
@@ -502,7 +458,7 @@ module Whodunit
           # Should not raise any errors
           begin
             @adapter.send(:close_connections)
-          rescue => e
+          rescue StandardError => e
             flunk "Expected no exception, but got: #{e.message}"
           end
         end

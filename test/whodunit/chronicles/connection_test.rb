@@ -243,7 +243,7 @@ class ConnectionTest < Minitest::Test
     # Mock PG::BasicTypeMapForResults directly
     PG::BasicTypeMapForResults.expects(:new).with(mock_connection).returns(mock_type_map)
     mock_connection.expects(:type_map_for_results=).with(mock_type_map)
-    
+
     @instance.connection = mock_connection
 
     @instance.setup_connection_specifics
@@ -257,7 +257,7 @@ class ConnectionTest < Minitest::Test
     # Should not raise any errors and not call any methods on connection
     begin
       @instance.setup_connection_specifics
-    rescue => e
+    rescue StandardError => e
       flunk "Expected no exception, but got: #{e.message}"
     end
   end
