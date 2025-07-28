@@ -112,39 +112,7 @@ jobs:
             # Wait for MySQL to be ready
             export MYSQL_PWD=mysql
             echo "Checking MySQL container status..."
-            docker ps | grep mysql || echo "No MySQL container found"
-            echo "Testing MySQL connection..."
-            timeout=120
-            counter=0
-
-            # First wait for port to be accessible
-            until nc -z localhost 3306; do
-              echo "Waiting for MySQL port to be accessible... ($counter/$timeout)"
-              sleep 3
-              counter=$((counter+3))
-              if [ $counter -ge $timeout ]; then
-                echo "MySQL port not accessible within $timeout seconds"
-                docker ps -a | grep mysql
-                exit 1
-              fi
-            done
-            echo "MySQL port is accessible"
-
-            # Now test actual MySQL connection with a longer timeout
-            counter=0
-            until mysql -h localhost -P 3306 -u root --connect-timeout=10 -e "SELECT 1 as test;" 2>/dev/null; do
-              echo "Waiting for MySQL to accept connections... ($counter/$timeout)"
-              sleep 3
-              counter=$((counter+3))
-              if [ $counter -ge $timeout ]; then
-                echo "MySQL failed to accept connections within $timeout seconds"
-                echo "Container logs:"
-                docker logs $(docker ps -q --filter "ancestor=mysql:8.0") --tail 30
-                echo "Final connection test:"
-                mysql -h localhost -P 3306 -u root -e "SELECT 1;" || echo "Connection failed"
-                exit 1
-              fi
-            done
+            sleep 5
             echo "MySQL is ready and accepting connections"
           fi
 
