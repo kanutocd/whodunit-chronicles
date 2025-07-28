@@ -60,6 +60,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'yard', '~> 0.9'
 
   # Security scanning dependencies
-  spec.add_development_dependency 'brakeman', '~> 6.0'
+  spec.add_development_dependency 'brakeman', '~> 7.1'
   spec.add_development_dependency 'bundler-audit', '~> 0.9'
 end
