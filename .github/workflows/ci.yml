@@ -182,7 +182,7 @@ jobs:
             echo "Waiting for MySQL to be ready..."
             timeout=60
             while [ $timeout -gt 0 ]; do
-              if mysqladmin ping -h localhost -P 3306 --silent 2>/dev/null; then
+              if mysqladmin ping -h 0.0.0.0 -u root -p$MYSQL_PWD -P 3306 --silent 2>/dev/null; then
                 echo "MySQL is ready"
                 break
               fi
