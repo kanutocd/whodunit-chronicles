@@ -42,6 +42,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'pg', '~> 1.5'
   # Driver for MySQL-compatible database
   spec.add_dependency 'trilogy', '~> 2.9'
+  # Required for Ruby 3.4+ compatibility (trilogy dependency)
+  spec.add_dependency 'bigdecimal', '~> 3.1'
 
   # Development dependencies
   spec.add_development_dependency 'kramdown', '~> 2.5'
