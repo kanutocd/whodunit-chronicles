@@ -211,6 +211,7 @@ jobs:
             sudo apt-get -yqq install libmariadb-dev
             export MYSQL_PWD=mysql
             echo "Checking MySQL container status..."
+            mysqladmin ping --silent
             sleep 5
           fi
 
