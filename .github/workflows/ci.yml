@@ -113,17 +113,24 @@ jobs:
             export MYSQL_PWD=mysql
             echo "Checking MySQL container status..."
             docker ps | grep mysql || echo "No MySQL container found"
-            echo "Waiting for MySQL to accept connections..."
+            echo "Testing MySQL connection..."
             timeout=60
             counter=0
-            until mysqladmin ping -h localhost -P 3306 -u root --silent 2>/dev/null; do
+            until mysql -h localhost -P 3306 -u root -e "SELECT 1;" 2>/dev/null; do
               echo "Waiting for MySQL... ($counter/$timeout)"
               sleep 2
               counter=$((counter+2))
               if [ $counter -ge $timeout ]; then
                 echo "MySQL failed to start within $timeout seconds"
-                echo "MySQL service status:"
-                docker logs mysql-service 2>/dev/null || echo "Could not get MySQL logs"
+                echo "Trying to get container logs..."
+                docker ps -a | grep mysql
+                container_id=$(docker ps -q --filter "ancestor=mysql:8.0")
+                if [ ! -z "$container_id" ]; then
+                  echo "MySQL container logs:"
+                  docker logs "$container_id" --tail 20
+                fi
+                echo "Network connectivity test:"
+                nc -zv localhost 3306 || echo "Port 3306 not reachable"
                 exit 1
               fi
             done
@@ -194,17 +201,24 @@ jobs:
             export MYSQL_PWD=mysql
             echo "Checking MySQL container status..."
             docker ps | grep mysql || echo "No MySQL container found"
-            echo "Waiting for MySQL to accept connections..."
+            echo "Testing MySQL connection..."
             timeout=60
             counter=0
-            until mysqladmin ping -h localhost -P 3306 -u root --silent 2>/dev/null; do
+            until mysql -h localhost -P 3306 -u root -e "SELECT 1;" 2>/dev/null; do
               echo "Waiting for MySQL... ($counter/$timeout)"
               sleep 2
               counter=$((counter+2))
               if [ $counter -ge $timeout ]; then
                 echo "MySQL failed to start within $timeout seconds"
-                echo "MySQL service status:"
-                docker logs mysql-service 2>/dev/null || echo "Could not get MySQL logs"
+                echo "Trying to get container logs..."
+                docker ps -a | grep mysql
+                container_id=$(docker ps -q --filter "ancestor=mysql:8.0")
+                if [ ! -z "$container_id" ]; then
+                  echo "MySQL container logs:"
+                  docker logs "$container_id" --tail 20
+                fi
+                echo "Network connectivity test:"
+                nc -zv localhost 3306 || echo "Port 3306 not reachable"
                 exit 1
               fi
             done
