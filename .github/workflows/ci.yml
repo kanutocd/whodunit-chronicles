@@ -207,9 +207,9 @@ jobs:
           elif [ "${{ matrix.adapter }}" = "mysql" ]; then
             bundle exec ruby -Itest test/whodunit/chronicles/service_test.rb -n test_build_adapter_mysql
           fi
-          # Test adapter-agnostic AuditProcessor functionality
-          echo "Testing AuditProcessor with ${{ matrix.adapter }} adapter..."
-          bundle exec ruby -Itest test/whodunit/chronicles/audit_processor_test.rb
+          # Test adapter-agnostic Processor functionality
+          echo "Testing Processor with ${{ matrix.adapter }} adapter..."
+          bundle exec ruby -Itest test/whodunit/chronicles/processor_test.rb
           # Test that both adapters are available
           echo "Testing adapter availability..."
           bundle exec ruby -Itest test/whodunit/chronicles_test.rb -n test_main_classes_defined
