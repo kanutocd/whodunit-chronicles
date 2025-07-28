@@ -17,8 +17,8 @@ module Whodunit
         def test_initialization
           adapter = PostgreSQL.new(logger: mock_logger)
 
-          assert_equal 'whodunit_audit', adapter.publication_name
-          assert_equal 'whodunit_audit_slot', adapter.slot_name
+          assert_equal 'whodunit_chronicles', adapter.publication_name
+          assert_equal 'whodunit_chronicles_slot', adapter.slot_name
         end
 
         def test_initialization_with_custom_options
@@ -284,6 +284,183 @@ module Whodunit
 
           # Should not raise, just log error
           @adapter.send(:process_wal_data, 'invalid data') { |_event| nil }
+        end
+
+        def test_establish_connection_when_not_connected
+          @adapter.instance_variable_set(:@connection, nil)
+
+          mock_connection = mock('pg_connection')
+          mock_connection.stubs(:finished?).returns(false)
+          mock_connection.expects(:type_map_for_results=)
+
+          mock_type_map = mock('type_map')
+
+          # Mock PG.connect directly
+          PG.expects(:connect).with('postgresql://localhost/test').returns(mock_connection)
+
+          # Mock PG::BasicTypeMapForResults
+          PG::BasicTypeMapForResults.expects(:new).with(mock_connection).returns(mock_type_map)
+
+          @adapter.send(:establish_connection)
+
+          assert_equal mock_connection, @adapter.instance_variable_get(:@connection)
+        end
+
+        def test_establish_connection_when_connection_finished
+          finished_connection = mock('finished_connection')
+          finished_connection.expects(:finished?).returns(true)
+          @adapter.instance_variable_set(:@connection, finished_connection)
+
+          mock_connection = mock('pg_connection')
+          mock_connection.stubs(:finished?).returns(false)
+          mock_connection.expects(:type_map_for_results=)
+
+          mock_type_map = mock('type_map')
+
+          # Mock PG.connect directly
+          PG.expects(:connect).with('postgresql://localhost/test').returns(mock_connection)
+
+          # Mock PG::BasicTypeMapForResults
+          PG::BasicTypeMapForResults.expects(:new).with(mock_connection).returns(mock_type_map)
+
+          @adapter.send(:establish_connection)
+
+          assert_equal mock_connection, @adapter.instance_variable_get(:@connection)
+        end
+
+        def test_establish_connection_when_active_connection_exists
+          active_connection = mock('active_connection')
+          active_connection.expects(:finished?).returns(false)
+          @adapter.instance_variable_set(:@connection, active_connection)
+
+          # Should not create new connection
+          Object.expects(:const_get).never
+
+          @adapter.send(:establish_connection)
+
+          assert_equal active_connection, @adapter.instance_variable_get(:@connection)
+        end
+
+        def test_establish_replication_connection_when_not_connected
+          @adapter.instance_variable_set(:@replication_connection, nil)
+
+          mock_repl_connection = mock('replication_connection')
+          mock_repl_connection.stubs(:finished?).returns(false)
+
+          # Mock PG.connect directly
+          PG.expects(:connect)
+            .with('postgresql://localhost/test?replication=database')
+            .returns(mock_repl_connection)
+
+          @adapter.send(:establish_replication_connection)
+
+          assert_equal mock_repl_connection, @adapter.instance_variable_get(:@replication_connection)
+        end
+
+        def test_establish_replication_connection_when_connection_finished
+          finished_connection = mock('finished_replication_connection')
+          finished_connection.expects(:finished?).returns(true)
+          @adapter.instance_variable_set(:@replication_connection, finished_connection)
+
+          mock_repl_connection = mock('replication_connection')
+          mock_repl_connection.stubs(:finished?).returns(false)
+
+          # Mock PG.connect directly
+          PG.expects(:connect)
+            .with('postgresql://localhost/test?replication=database')
+            .returns(mock_repl_connection)
+
+          @adapter.send(:establish_replication_connection)
+
+          assert_equal mock_repl_connection, @adapter.instance_variable_get(:@replication_connection)
+        end
+
+        def test_establish_replication_connection_when_active_connection_exists
+          active_connection = mock('active_replication_connection')
+          active_connection.expects(:finished?).returns(false)
+          @adapter.instance_variable_set(:@replication_connection, active_connection)
+
+          # Should not create new connection
+          Object.expects(:const_get).never
+
+          @adapter.send(:establish_replication_connection)
+
+          assert_equal active_connection, @adapter.instance_variable_get(:@replication_connection)
+        end
+
+        def test_establish_replication_connection_with_existing_query_params
+          @adapter.instance_variable_set(:@database_url, 'postgresql://localhost/test?ssl=require')
+          @adapter.instance_variable_set(:@replication_connection, nil)
+
+          mock_repl_connection = mock('replication_connection')
+          mock_repl_connection.stubs(:finished?).returns(false)
+
+          # Mock PG.connect directly
+          PG.expects(:connect)
+            .with('postgresql://localhost/test?ssl=require&replication=database')
+            .returns(mock_repl_connection)
+
+          @adapter.send(:establish_replication_connection)
+
+          assert_equal mock_repl_connection, @adapter.instance_variable_get(:@replication_connection)
+        end
+
+        def test_stream_changes_executes_copy_and_processes_data
+          skip 'Complex streaming test requires integration testing with real PostgreSQL connection'
+        end
+
+        def test_stream_changes_stops_when_no_more_data
+          mock_replication_connection = mock('replication_connection')
+          @adapter.instance_variable_set(:@replication_connection, mock_replication_connection)
+
+          # Mock connection for confirmed_flush_lsn calls
+          mock_connection = mock('connection')
+          mock_result = mock('result')
+          mock_result.stubs(:ntuples).returns(0)
+          mock_result.stubs(:clear)
+          mock_connection.stubs(:exec_params).returns(mock_result)
+          @adapter.instance_variable_set(:@connection, mock_connection)
+
+          copy_sql = @adapter.send(:build_copy_statement)
+          mock_replication_connection.expects(:exec).with(copy_sql)
+
+          # Return nil immediately to simulate no data
+          mock_replication_connection.expects(:get_copy_data).with(async: false).returns(nil)
+
+          @adapter.stubs(:running?).returns(true)
+
+          # Should not call process_wal_data
+          @adapter.expects(:process_wal_data).never
+
+          @adapter.send(:stream_changes) { |_event| nil }
+        end
+
+        def test_close_connections_closes_both_connections
+          mock_connection = mock('connection')
+          mock_replication_connection = mock('replication_connection')
+
+          @adapter.instance_variable_set(:@connection, mock_connection)
+          @adapter.instance_variable_set(:@replication_connection, mock_replication_connection)
+
+          mock_connection.expects(:close)
+          mock_replication_connection.expects(:close)
+
+          @adapter.send(:close_connections)
+
+          assert_nil @adapter.instance_variable_get(:@connection)
+          assert_nil @adapter.instance_variable_get(:@replication_connection)
+        end
+
+        def test_close_connections_handles_nil_connections
+          @adapter.instance_variable_set(:@connection, nil)
+          @adapter.instance_variable_set(:@replication_connection, nil)
+
+          # Should not raise any errors
+          begin
+            @adapter.send(:close_connections)
+          rescue StandardError => e
+            flunk "Expected no exception, but got: #{e.message}"
+          end
         end
 
         def test_ensure_setup_checks_publication_and_slot

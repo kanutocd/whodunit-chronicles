@@ -41,21 +41,25 @@ Gem::Specification.new do |spec|
   # Database dependencies
   spec.add_dependency 'pg', '~> 1.5'
   # Driver for MySQL-compatible database
-  # spec.add_dependency 'trilogy', '~> 2.9'
+  spec.add_dependency 'trilogy', '~> 2.9'
+  # Required for Ruby 3.4+ compatibility (trilogy dependency)
+  spec.add_dependency 'bigdecimal', '~> 3.1'
 
   # Development dependencies
-  spec.add_development_dependency 'bundler', '~> 2.4'
+  spec.add_development_dependency 'kramdown', '~> 2.5'
   spec.add_development_dependency 'minitest', '~> 5.20'
   spec.add_development_dependency 'mocha', '~> 2.1'
   spec.add_development_dependency 'pry', '~> 0.14'
   spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'rspec_junit_formatter', '~> 0.6.0'
   spec.add_development_dependency 'rubocop', '~> 1.60'
   spec.add_development_dependency 'rubocop-minitest', '~> 0.34'
   spec.add_development_dependency 'rubocop-performance', '~> 1.19'
   spec.add_development_dependency 'simplecov', '~> 0.22'
+  spec.add_development_dependency 'simplecov-cobertura', '~> 3.0'
   spec.add_development_dependency 'yard', '~> 0.9'
 
   # Security scanning dependencies
-  spec.add_development_dependency 'brakeman', '~> 6.0'
+  spec.add_development_dependency 'brakeman', '~> 7.1'
   spec.add_development_dependency 'bundler-audit', '~> 0.9'
 end

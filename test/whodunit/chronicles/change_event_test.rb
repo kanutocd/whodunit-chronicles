@@ -57,8 +57,8 @@ module Whodunit
       def test_changes_hash_for_update
         event = create_change_event(action: 'UPDATE')
         expected_changes = {
-          'name' => %w[John Jane],
-          'email' => %w[john@example.com jane@example.com],
+          'name' => %w[Ken Sophia],
+          'email' => %w[spherical.cow@example.com sophia@example.com],
         }
 
         assert_equal expected_changes, event.changes

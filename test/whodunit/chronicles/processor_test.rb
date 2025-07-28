@@ -4,42 +4,42 @@ require 'test_helper'
 
 module Whodunit
   module Chronicles
-    class AuditProcessorTest < Minitest::Test
+    class ProcessorTest < Minitest::Test
       def setup
         super
-        @processor = AuditProcessor.new(logger: mock_logger)
+        @processor = Processor.new(logger: mock_logger)
       end
 
       def test_initialization_with_defaults
-        processor = AuditProcessor.new(logger: mock_logger)
+        processor = Processor.new(logger: mock_logger)
 
-        assert_instance_of AuditProcessor, processor
+        assert_instance_of Processor, processor
       end
 
       def test_initialization_with_custom_audit_database_url
-        processor = AuditProcessor.new(
+        processor = Processor.new(
           audit_database_url: 'postgresql://localhost/audit',
           logger: mock_logger,
         )
 
-        assert_instance_of AuditProcessor, processor
+        assert_instance_of Processor, processor
       end
 
-      def test_process_creates_audit_record
+      def test_process_creates_record
         change_event = create_change_event(action: 'INSERT')
-        mock_audit_connection
+        mock_connection
 
-        audit_record = @processor.process(change_event)
+        record = @processor.process(change_event)
 
-        assert audit_record[:id]
-        assert_equal 'users', audit_record[:table_name]
-        assert_equal 'INSERT', audit_record[:action]
-        assert_equal change_event.new_data, audit_record[:new_data]
+        assert record[:id]
+        assert_equal 'users', record[:table_name]
+        assert_equal 'INSERT', record[:action]
+        assert_equal change_event.new_data, record[:new_data]
       end
 
       def test_process_handles_errors
         change_event = create_change_event(action: 'INSERT')
-        @processor.stubs(:ensure_audit_connection).raises(StandardError.new('Connection failed'))
+        @processor.stubs(:ensure_connection).raises(StandardError.new('Connection failed'))
 
         assert_raises StandardError do
           @processor.process(change_event)
@@ -59,22 +59,22 @@ module Whodunit
         ]
 
         # Mock the database connection to prevent real DB access
-        @processor.stubs(:ensure_audit_connection)
-        @processor.expects(:persist_audit_records_batch).returns([
-                                                                   { id: 1, action: 'INSERT' },
-                                                                   { id: 2, action: 'UPDATE' },
-                                                                 ])
+        @processor.stubs(:ensure_connection)
+        @processor.expects(:persist_records_batch).returns([
+                                                             { id: 1, action: 'INSERT' },
+                                                             { id: 2, action: 'UPDATE' },
+                                                           ])
 
-        audit_records = @processor.process_batch(events)
+        records = @processor.process_batch(events)
 
-        assert_equal 2, audit_records.size
-        assert_equal 'INSERT', audit_records[0][:action]
-        assert_equal 'UPDATE', audit_records[1][:action]
+        assert_equal 2, records.size
+        assert_equal 'INSERT', records[0][:action]
+        assert_equal 'UPDATE', records[1][:action]
       end
 
       def test_process_batch_handles_errors
         events = [create_change_event(action: 'INSERT')]
-        @processor.stubs(:ensure_audit_connection).raises(StandardError.new('Batch failed'))
+        @processor.stubs(:ensure_connection).raises(StandardError.new('Batch failed'))
 
         assert_raises StandardError do
           @processor.process_batch(events)
@@ -84,46 +84,46 @@ module Whodunit
       def test_close_closes_connection
         mock_connection = mock('connection')
         mock_connection.expects(:close)
-        @processor.instance_variable_set(:@audit_connection, mock_connection)
+        @processor.instance_variable_set(:@connection, mock_connection)
 
         @processor.close
 
-        assert_nil @processor.instance_variable_get(:@audit_connection)
+        assert_nil @processor.instance_variable_get(:@connection)
       end
 
-      def test_build_audit_record_for_insert
+      def test_build_record_for_insert
         change_event = create_change_event(action: 'INSERT')
 
-        audit_record = @processor.send(:build_audit_record, change_event)
+        record = @processor.send(:build_record, change_event)
 
-        assert_equal 'users', audit_record[:table_name]
-        assert_equal 'public', audit_record[:schema_name]
-        assert_equal 'INSERT', audit_record[:action]
-        assert_equal change_event.primary_key, audit_record[:record_id]
-        assert_nil audit_record[:old_data]
-        assert_equal change_event.new_data, audit_record[:new_data]
-        assert_instance_of Hash, audit_record[:metadata]
+        assert_equal 'users', record[:table_name]
+        assert_equal 'public', record[:schema_name]
+        assert_equal 'INSERT', record[:action]
+        assert_equal change_event.primary_key, record[:record_id]
+        assert_nil record[:old_data]
+        assert_equal change_event.new_data, record[:new_data]
+        assert_instance_of Hash, record[:metadata]
       end
 
-      def test_build_audit_record_for_update
+      def test_build_record_for_update
         change_event = create_change_event(action: 'UPDATE')
 
-        audit_record = @processor.send(:build_audit_record, change_event)
+        record = @processor.send(:build_record, change_event)
 
-        assert_equal 'UPDATE', audit_record[:action]
-        assert_equal change_event.old_data, audit_record[:old_data]
-        assert_equal change_event.new_data, audit_record[:new_data]
-        assert_equal change_event.changes, audit_record[:changes]
+        assert_equal 'UPDATE', record[:action]
+        assert_equal change_event.old_data, record[:old_data]
+        assert_equal change_event.new_data, record[:new_data]
+        assert_equal change_event.changes, record[:changes]
       end
 
-      def test_build_audit_record_for_delete
+      def test_build_record_for_delete
         change_event = create_change_event(action: 'DELETE')
 
-        audit_record = @processor.send(:build_audit_record, change_event)
+        record = @processor.send(:build_record, change_event)
 
-        assert_equal 'DELETE', audit_record[:action]
-        assert_equal change_event.old_data, audit_record[:old_data]
-        assert_nil audit_record[:new_data]
+        assert_equal 'DELETE', record[:action]
+        assert_equal change_event.old_data, record[:old_data]
+        assert_nil record[:new_data]
       end
 
       def test_extract_user_info_with_creator_id
@@ -183,9 +183,9 @@ module Whodunit
         assert_equal Chronicles::VERSION, metadata[:chronicles_version]
       end
 
-      def test_persist_audit_record
-        mock_audit_connection
-        audit_record = {
+      def test_persist_record
+        mock_connection
+        record = {
           table_name: 'users',
           schema_name: 'public',
           record_id: { 'id' => 1 },
@@ -202,70 +202,70 @@ module Whodunit
           metadata: { version: '1.0' },
         }
 
-        result = @processor.send(:persist_audit_record, audit_record)
+        result = @processor.send(:persist_record, record)
 
         assert_equal 123, result[:id]
-        assert_equal audit_record[:table_name], result[:table_name]
+        assert_equal record[:table_name], result[:table_name]
       end
 
-      def test_persist_audit_records_batch_empty
-        result = @processor.send(:persist_audit_records_batch, [])
+      def test_persist_records_batch_empty
+        result = @processor.send(:persist_records_batch, [])
 
         assert_empty result
       end
 
-      def test_persist_audit_records_batch_with_records
-        mock_audit_connection_batch
-        audit_records = [
-          build_sample_audit_record('INSERT'),
-          build_sample_audit_record('UPDATE'),
+      def test_persist_records_batch_with_records
+        mock_connection_batch
+        records = [
+          build_sample_record('INSERT'),
+          build_sample_record('UPDATE'),
         ]
 
-        result = @processor.send(:persist_audit_records_batch, audit_records)
+        result = @processor.send(:persist_records_batch, records)
 
         assert_equal 2, result.size
         # Verify that the IDs have been set on the records
-        assert_equal 101, audit_records[0][:id]
-        assert_equal 102, audit_records[1][:id]
+        assert_equal 101, records[0][:id]
+        assert_equal 102, records[1][:id]
         # The method returns the same array
-        assert_same audit_records, result
+        assert_same records, result
       end
 
-      def test_ensure_audit_connection_creates_table
+      def test_ensure_connection_creates_table
         mock_connection = mock('connection')
         mock_connection.expects(:type_map_for_results=)
         mock_connection.expects(:exec).once # For table creation
         PG.expects(:connect).returns(mock_connection)
         PG::BasicTypeMapForResults.expects(:new).returns(mock('type_map'))
 
-        @processor.send(:ensure_audit_connection)
+        @processor.send(:ensure_connection)
       end
 
       private
 
-      def mock_audit_connection
+      def mock_connection
         mock_connection = mock('connection')
         mock_connection.stubs(:type_map_for_results=)
         mock_connection.stubs(:exec)
         mock_connection.stubs(:finished?).returns(false)
 
-        # Mock the persist_audit_record SQL execution
+        # Mock the persist_record SQL execution
         result_mock = mock('result')
         result_mock.stubs(:first).returns({ 'id' => '123' })
         result_mock.expects(:clear)
         mock_connection.stubs(:exec_params).returns(result_mock)
 
-        @processor.instance_variable_set(:@audit_connection, mock_connection)
-        @processor.stubs(:ensure_audit_table_exists)
+        @processor.instance_variable_set(:@connection, mock_connection)
+        @processor.stubs(:ensure_table_exists)
       end
 
-      def mock_audit_connection_batch
+      def mock_connection_batch
         mock_connection = mock('connection')
         mock_connection.stubs(:type_map_for_results=)
         mock_connection.stubs(:exec)
         mock_connection.stubs(:finished?).returns(false)
 
-        # Create a special result mock that actually modifies the audit_records
+        # Create a special result mock that actually modifies the records
         result_mock = Object.new
         def result_mock.each_with_index
           # Simulate the database returning IDs
@@ -278,11 +278,11 @@ module Whodunit
         end
         mock_connection.stubs(:exec_params).returns(result_mock)
 
-        @processor.instance_variable_set(:@audit_connection, mock_connection)
-        @processor.stubs(:ensure_audit_table_exists)
+        @processor.instance_variable_set(:@connection, mock_connection)
+        @processor.stubs(:ensure_table_exists)
       end
 
-      def build_sample_audit_record(action)
+      def build_sample_record(action)
         {
           id: nil,
           table_name: 'users',

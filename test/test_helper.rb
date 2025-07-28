@@ -4,6 +4,28 @@ require 'simplecov'
 SimpleCov.start do
   add_filter '/test/'
   add_filter '/vendor/'
+
+  # Require 100% coverage (temporarily set to 96 while working towards 100%)
+  minimum_coverage 96
+
+  # Coverage output directory
+  coverage_dir 'coverage'
+
+  # Enable branch coverage for better analysis
+  enable_coverage :branch
+
+  # Generate multiple formats for CI
+  if ENV['CI'] || ENV['COVERAGE']
+    require 'simplecov-cobertura'
+
+    SimpleCov.formatters = [
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::CoberturaFormatter,
+    ]
+  end
+
+  # Exclude generated or boilerplate files
+  add_filter 'lib/whodunit/version.rb' # Simple version constant
 end
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
@@ -19,11 +41,13 @@ module Whodunit
     module TestHelpers
       def setup
         super
-        # Reset configuration for each test - just configure defaults
+        # Reset configuration for each test - configure defaults with CI adapter override
+        adapter = ENV['WHODUNIT_CHRONICLES_ADAPTER']&.to_sym || :postgresql
+
         Chronicles.configure do |config|
           config.database_url = nil
           config.audit_database_url = nil
-          config.adapter = :postgresql
+          config.adapter = adapter
           config.publication_name = 'whodunit_chronicles'
           config.replication_slot_name = 'whodunit_chronicles_slot'
           config.batch_size = 100

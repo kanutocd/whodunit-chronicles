@@ -4,10 +4,10 @@ require 'concurrent-ruby'
 
 module Whodunit
   module Chronicles
-    # Main service orchestrator for audit streaming
+    # Main service orchestrator for chronicle streaming
     #
-    # Coordinates the stream adapter and audit processor to provide
-    # a complete audit streaming solution with error handling and monitoring.
+    # Coordinates the stream adapter and processor to provide
+    # a complete chronicle streaming solution with error handling and monitoring.
     class Service
       attr_reader :adapter, :processor, :logger, :executor
 
@@ -17,7 +17,7 @@ module Whodunit
         logger: Chronicles.logger
       )
         @adapter = adapter || build_adapter
-        @processor = processor || AuditProcessor.new(logger: logger)
+        @processor = processor || Processor.new(logger: logger)
         @logger = logger
         @executor = Concurrent::ThreadPoolExecutor.new(
           min_threads: 1,
@@ -29,13 +29,13 @@ module Whodunit
         @retry_count = 0
       end
 
-      # Start the audit streaming service
+      # Start the chronicle streaming service
       #
       # @return [self]
       def start
         return self if running?
 
-        log(:info, 'Starting Chronicles audit streaming service')
+        log(:info, 'Starting Chronicles streaming service')
 
         validate_setup!
         test_connections!
@@ -45,7 +45,7 @@ module Whodunit
 
         start_streaming_with_retry
 
-        log(:info, 'Chronicles audit streaming service started successfully')
+        log(:info, 'Chronicles streaming service started successfully')
         self
       rescue StandardError => e
         log(:error, 'Failed to start service', error: e.message)
@@ -53,13 +53,13 @@ module Whodunit
         raise
       end
 
-      # Stop the audit streaming service
+      # Stop the chronicle streaming service
       #
       # @return [void]
       def stop
         return unless running?
 
-        log(:info, 'Stopping Chronicles audit streaming service')
+        log(:info, 'Stopping Chronicles streaming service')
         @running = false
 
         adapter.stop_streaming if adapter.streaming?
@@ -67,7 +67,7 @@ module Whodunit
         @executor.wait_for_termination(timeout: 30)
 
         processor.close
-        log(:info, 'Chronicles audit streaming service stopped')
+        log(:info, 'Chronicles streaming service stopped')
       end
 
       # Check if service is running
@@ -94,23 +94,23 @@ module Whodunit
         }
       end
 
-      # Set up the audit streaming infrastructure
+      # Set up the chronicle streaming infrastructure
       #
       # @return [void]
       def setup!
-        log(:info, 'Setting up audit streaming infrastructure')
+        log(:info, 'Setting up chronicle streaming infrastructure')
         adapter.setup
-        log(:info, 'Audit streaming infrastructure setup completed')
+        log(:info, 'Chronicle streaming infrastructure setup completed')
       end
 
-      # Tear down the audit streaming infrastructure
+      # Tear down the chronicle streaming infrastructure
       #
       # @return [void]
       def teardown!
-        log(:info, 'Tearing down audit streaming infrastructure')
+        log(:info, 'Tearing down chronicle streaming infrastructure')
         stop if running?
         adapter.teardown
-        log(:info, 'Audit streaming infrastructure teardown completed')
+        log(:info, 'Chronicle streaming infrastructure teardown completed')
       end
 
       private
@@ -119,7 +119,7 @@ module Whodunit
         case Chronicles.config.adapter
         when :postgresql
           Adapters::PostgreSQL.new(logger: logger)
-        when :mysql, :mariadb
+        when :mysql
           Adapters::MySQL.new(logger: logger)
         else
           raise ConfigurationError, "Unsupported adapter: #{Chronicles.config.adapter}"
@@ -136,8 +136,8 @@ module Whodunit
 
       def test_connections!
         adapter.test_connection
-        # Test audit processor connection by creating a dummy connection
-        processor.send(:ensure_audit_connection)
+        # Test processor connection by creating a dummy connection
+        processor.send(:ensure_connection)
       rescue StandardError => e
         raise AdapterError, "Connection test failed: #{e.message}"
       end
@@ -161,7 +161,7 @@ module Whodunit
 
       def process_change_event(change_event)
         return unless change_event
-        return unless should_audit_table?(change_event)
+        return unless should_chronicle_table?(change_event)
 
         log(:debug, 'Processing change event',
           table: change_event.qualified_table_name,
@@ -176,8 +176,8 @@ module Whodunit
         )
       end
 
-      def should_audit_table?(change_event)
-        Chronicles.config.audit_table?(
+      def should_chronicle_table?(change_event)
+        Chronicles.config.chronicle_table?(
           change_event.table_name,
           change_event.schema_name,
         )

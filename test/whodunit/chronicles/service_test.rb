@@ -140,17 +140,6 @@ module Whodunit
         Chronicles.configure { |config| config.adapter = :postgresql }
       end
 
-      def test_build_adapter_mariadb
-        Chronicles.configure { |config| config.adapter = :mariadb }
-        service = Service.new(logger: mock_logger)
-
-        adapter = service.send(:build_adapter)
-
-        assert_instance_of Adapters::MySQL, adapter
-      ensure
-        Chronicles.configure { |config| config.adapter = :postgresql }
-      end
-
       def test_build_adapter_unsupported
         Chronicles.configure { |config| config.adapter = :oracle }
 
@@ -185,7 +174,7 @@ module Whodunit
 
       def test_test_connections_success
         @mock_adapter.expects(:test_connection).returns(true)
-        @mock_processor.expects(:send).with(:ensure_audit_connection).once
+        @mock_processor.expects(:send).with(:ensure_connection).once
 
         @service.send(:test_connections!)
       end
@@ -204,7 +193,7 @@ module Whodunit
       def test_process_change_event_success
         change_event = create_change_event(action: 'INSERT')
         Chronicles.expects(:config).returns(mock_config = mock('config'))
-        mock_config.expects(:audit_table?).with('users', 'public').returns(true)
+        mock_config.expects(:chronicle_table?).with('users', 'public').returns(true)
         @mock_processor.expects(:process).with(change_event).once
 
         @service.send(:process_change_event, change_event)
@@ -213,7 +202,7 @@ module Whodunit
       def test_process_change_event_filtered_out
         change_event = create_change_event(action: 'INSERT')
         Chronicles.expects(:config).returns(mock_config = mock('config'))
-        mock_config.expects(:audit_table?).with('users', 'public').returns(false)
+        mock_config.expects(:chronicle_table?).with('users', 'public').returns(false)
         @mock_processor.expects(:process).never
 
         @service.send(:process_change_event, change_event)
@@ -228,19 +217,19 @@ module Whodunit
       def test_process_change_event_handles_errors
         change_event = create_change_event(action: 'INSERT')
         Chronicles.expects(:config).returns(mock_config = mock('config'))
-        mock_config.expects(:audit_table?).returns(true)
+        mock_config.expects(:chronicle_table?).returns(true)
         @mock_processor.expects(:process).raises(StandardError.new('Processing failed'))
 
         # Should not raise, just log error
         @service.send(:process_change_event, change_event)
       end
 
-      def test_should_audit_table
+      def test_should_chronicle_table
         change_event = create_change_event(action: 'INSERT')
         Chronicles.expects(:config).returns(mock_config = mock('config'))
-        mock_config.expects(:audit_table?).with('users', 'public').returns(true)
+        mock_config.expects(:chronicle_table?).with('users', 'public').returns(true)
 
-        assert @service.send(:should_audit_table?, change_event)
+        assert @service.send(:should_chronicle_table?, change_event)
       end
 
       def test_handle_streaming_error

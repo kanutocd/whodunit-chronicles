@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,15 +27,16 @@ jobs:
           bundler-cache: true
 
       - name: Run tests
-        run: bundle exec rake test
+        run: COVERAGE=true bundle exec rake test
 
       - name: Upload coverage reports to Codecov
         if: matrix.ruby-version == '3.4'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          files: ./coverage/coverage.json
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          use_oidc: true
+          files: ./coverage.xml,./coverage/coverage.xml
 
   lint:
     runs-on: ubuntu-latest
@@ -46,7 +50,7 @@ jobs:
           bundler-cache: true
 
       - name: Run RuboCop
-        run: bundle exec rubocop
+        run: bundle exec rake rubocop
 
       - name: Check for security vulnerabilities
         run: bundle exec bundler-audit check --update
@@ -56,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [postgres]
+        database: [postgres, mysql]
     services:
       postgres:
         image: postgres:15
@@ -71,6 +75,19 @@ jobs:
         ports:
           - 5432:5432
 
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: mysql
+          MYSQL_DATABASE: whodunit_chronicles_test
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
     steps:
       - uses: actions/checkout@v4
 
@@ -84,11 +101,193 @@ jobs:
         run: |
           if [ "${{ matrix.database }}" = "postgres" ]; then
             sudo apt-get -yqq install libpq-dev
-            createdb -h localhost -U postgres whodunit_chronicles_test || true
+            # Wait for PostgreSQL to be ready
+            until pg_isready -h localhost -p 5432; do
+              echo "Waiting for PostgreSQL..."
+              sleep 2
+            done
+            echo "PostgreSQL is ready"
+          elif [ "${{ matrix.database }}" = "mysql" ]; then
+            sudo apt-get -yqq install libmariadb-dev
+            # Wait for MySQL to be ready
+            export MYSQL_PWD=mysql
+            echo "Checking MySQL container status..."
+            docker ps | grep mysql || echo "No MySQL container found"
+            echo "Testing MySQL connection..."
+            timeout=120
+            counter=0
+            
+            # First wait for port to be accessible
+            until nc -z localhost 3306; do
+              echo "Waiting for MySQL port to be accessible... ($counter/$timeout)"
+              sleep 3
+              counter=$((counter+3))
+              if [ $counter -ge $timeout ]; then
+                echo "MySQL port not accessible within $timeout seconds"
+                docker ps -a | grep mysql
+                exit 1
+              fi
+            done
+            echo "MySQL port is accessible"
+            
+            # Now test actual MySQL connection with a longer timeout
+            counter=0
+            until mysql -h localhost -P 3306 -u root --connect-timeout=10 -e "SELECT 1 as test;" 2>/dev/null; do
+              echo "Waiting for MySQL to accept connections... ($counter/$timeout)"
+              sleep 3
+              counter=$((counter+3))
+              if [ $counter -ge $timeout ]; then
+                echo "MySQL failed to accept connections within $timeout seconds"
+                echo "Container logs:"
+                docker logs $(docker ps -q --filter "ancestor=mysql:8.0") --tail 30
+                echo "Final connection test:"
+                mysql -h localhost -P 3306 -u root -e "SELECT 1;" || echo "Connection failed"
+                exit 1
+              fi
+            done
+            echo "MySQL is ready and accepting connections"
           fi
 
       - name: Run integration tests
         env:
-          DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgres://postgres:postgres@localhost:5432/whodunit_chronicles_test' }}
+          DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgres://postgres:postgres@localhost:5432/whodunit_chronicles_test' || 'mysql://root:mysql@localhost:3306/whodunit_chronicles_test' }}
           RAILS_ENV: test
+          WHODUNIT_CHRONICLES_ADAPTER: ${{ matrix.database == 'postgres' && 'postgresql' || 'mysql' }}
         run: bundle exec rake test
+
+  adapter-specific:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter: [postgresql, mysql]
+        ruby-version: ["3.4"]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: whodunit_chronicles_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: mysql
+          MYSQL_DATABASE: whodunit_chronicles_test
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Setup database dependencies
+        run: |
+          if [ "${{ matrix.adapter }}" = "postgresql" ]; then
+            sudo apt-get -yqq install libpq-dev
+            until pg_isready -h localhost -p 5432; do
+              echo "Waiting for PostgreSQL..."
+              sleep 2
+            done
+            echo "PostgreSQL is ready"
+          elif [ "${{ matrix.adapter }}" = "mysql" ]; then
+            sudo apt-get -yqq install libmariadb-dev
+            export MYSQL_PWD=mysql
+            echo "Checking MySQL container status..."
+            docker ps | grep mysql || echo "No MySQL container found"
+            echo "Testing MySQL connection..."
+            timeout=120
+            counter=0
+            
+            # First wait for port to be accessible
+            until nc -z localhost 3306; do
+              echo "Waiting for MySQL port to be accessible... ($counter/$timeout)"
+              sleep 3
+              counter=$((counter+3))
+              if [ $counter -ge $timeout ]; then
+                echo "MySQL port not accessible within $timeout seconds"
+                docker ps -a | grep mysql
+                exit 1
+              fi
+            done
+            echo "MySQL port is accessible"
+            
+            # Now test actual MySQL connection with a longer timeout
+            counter=0
+            until mysql -h localhost -P 3306 -u root --connect-timeout=10 -e "SELECT 1 as test;" 2>/dev/null; do
+              echo "Waiting for MySQL to accept connections... ($counter/$timeout)"
+              sleep 3
+              counter=$((counter+3))
+              if [ $counter -ge $timeout ]; then
+                echo "MySQL failed to accept connections within $timeout seconds"
+                echo "Container logs:"
+                docker logs $(docker ps -q --filter "ancestor=mysql:8.0") --tail 30
+                echo "Final connection test:"
+                mysql -h localhost -P 3306 -u root -e "SELECT 1;" || echo "Connection failed"
+                exit 1
+              fi
+            done
+            echo "MySQL is ready and accepting connections"
+          fi
+
+      - name: Run adapter-specific tests
+        env:
+          DATABASE_URL: ${{ matrix.adapter == 'postgresql' && 'postgres://postgres:postgres@localhost:5432/whodunit_chronicles_test' || 'mysql://root:mysql@localhost:3306/whodunit_chronicles_test' }}
+          RAILS_ENV: test
+          WHODUNIT_CHRONICLES_ADAPTER: ${{ matrix.adapter }}
+        run: |
+          echo "Testing ${{ matrix.adapter }} adapter specifically..."
+          # Test PostgreSQL adapter
+          if [ "${{ matrix.adapter }}" = "postgresql" ]; then
+            bundle exec ruby -Itest test/whodunit/chronicles/adapters/postgresql_test.rb
+            bundle exec ruby -Itest test/whodunit/chronicles/configuration_test.rb -n test_validation_passes_with_postgresql_adapter
+          fi
+          # Test MySQL adapter
+          if [ "${{ matrix.adapter }}" = "mysql" ]; then
+            bundle exec ruby -Itest test/whodunit/chronicles/adapters/mysql_test.rb
+            bundle exec ruby -Itest test/whodunit/chronicles/configuration_test.rb -n test_validation_passes_with_mysql_adapter
+          fi
+          # Test Service adapter selection
+          if [ "${{ matrix.adapter }}" = "postgresql" ]; then
+            bundle exec ruby -Itest test/whodunit/chronicles/service_test.rb -n test_build_adapter_postgresql
+          elif [ "${{ matrix.adapter }}" = "mysql" ]; then
+            bundle exec ruby -Itest test/whodunit/chronicles/service_test.rb -n test_build_adapter_mysql
+          fi
+          # Test adapter-agnostic AuditProcessor functionality
+          echo "Testing AuditProcessor with ${{ matrix.adapter }} adapter..."
+          bundle exec ruby -Itest test/whodunit/chronicles/audit_processor_test.rb
+          # Test that both adapters are available
+          echo "Testing adapter availability..."
+          bundle exec ruby -Itest test/whodunit/chronicles_test.rb -n test_main_classes_defined
+          # Run comprehensive adapter compatibility tests
+          echo "Running adapter compatibility tests..."
+          bundle exec ruby -Itest test/adapter_compatibility_test.rb
+
+  # Summary job to ensure all database adapters pass
+  adapter-coverage:
+    runs-on: ubuntu-latest
+    needs: [test, integration, adapter-specific]
+    steps:
+      - name: Adapter Coverage Summary
+        run: |
+          echo "✅ All database adapters have been tested successfully!"
+          echo "✅ PostgreSQL adapter: Integration and unit tests passed"
+          echo "✅ MySQL adapter: Integration and unit tests passed"
+          echo "✅ Adapter-agnostic functionality: Verified across both databases"

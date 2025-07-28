@@ -1,12 +1,24 @@
-name: Documentation
+name: Deploy Documentation
 
 on:
   release:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  DOCS_FOLDER: ./docs
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  docs:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,36 +26,26 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: 3.4
           bundler-cache: true
 
       - name: Generate YARD documentation
         run: |
-          gem install yard
-          yard doc
+          bundle exec yard doc
+          # Create .nojekyll to bypass Jekyll processing
+          touch ${{ env.DOCS_FOLDER }}/.nojekyll
 
-      - name: Check documentation coverage
-        run: yard stats --list-undoc
-
-      - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: documentation
-          path: doc/
-          retention-days: 30
+          path: ${{ env.DOCS_FOLDER }}
 
-  deploy-docs:
-    runs-on: ubuntu-latest
-    needs: docs
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      pages: write
-      id-token: write
-
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v4
 
