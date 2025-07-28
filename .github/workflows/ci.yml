@@ -188,6 +188,7 @@ jobs:
           DATABASE_URL: ${{ matrix.adapter == 'postgresql' && 'postgres://postgres:postgres@localhost:5432/whodunit_chronicles_test' || 'mysql://root:mysql@localhost:3306/whodunit_chronicles_test' }}
           RAILS_ENV: test
           WHODUNIT_CHRONICLES_ADAPTER: ${{ matrix.adapter }}
+          ADAPTER_SPECIFIC_TEST: true
         run: |
           echo "Testing ${{ matrix.adapter }} adapter specifically..."
           # Test PostgreSQL adapter
