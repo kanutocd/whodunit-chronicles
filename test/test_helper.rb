@@ -5,8 +5,8 @@ SimpleCov.start do
   add_filter '/test/'
   add_filter '/vendor/'
 
-  # Require 100% coverage (temporarily set to 93 while working towards 100%)
-  minimum_coverage 93
+  # Require 100% coverage (temporarily set to 96 while working towards 100%)
+  minimum_coverage 96
 
   # Coverage output directory
   coverage_dir 'coverage'
