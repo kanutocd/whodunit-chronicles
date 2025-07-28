@@ -122,11 +122,14 @@ module Whodunit
       end
 
       def test_build_adapter_postgresql
+        Chronicles.configure { |config| config.adapter = :postgresql }
         service = Service.new(logger: mock_logger)
 
         adapter = service.send(:build_adapter)
 
         assert_instance_of Adapters::PostgreSQL, adapter
+      ensure
+        setup # Reset configuration
       end
 
       def test_build_adapter_mysql

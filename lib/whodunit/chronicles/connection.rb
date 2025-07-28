@@ -43,6 +43,8 @@ module Whodunit
       end
 
       def parse_mysql_url(url)
+        return {} if url.nil? || url.empty?
+
         uri = URI.parse(url)
         {
           host: uri.host,

@@ -233,10 +233,16 @@ module Whodunit
 
       def test_ensure_connection_creates_table
         mock_connection = mock('connection')
-        mock_connection.expects(:type_map_for_results=)
-        mock_connection.expects(:exec).once # For table creation
-        PG.expects(:connect).returns(mock_connection)
-        PG::BasicTypeMapForResults.expects(:new).returns(mock('type_map'))
+
+        if Chronicles.config.adapter == :postgresql
+          mock_connection.expects(:type_map_for_results=)
+          mock_connection.expects(:exec).once # For table creation
+          PG.expects(:connect).returns(mock_connection)
+          PG::BasicTypeMapForResults.expects(:new).returns(mock('type_map'))
+        else # mysql
+          mock_connection.expects(:query).once # For table creation
+          Trilogy.expects(:new).returns(mock_connection)
+        end
 
         @processor.send(:ensure_connection)
       end
@@ -245,15 +251,23 @@ module Whodunit
 
       def mock_connection
         mock_connection = mock('connection')
-        mock_connection.stubs(:type_map_for_results=)
-        mock_connection.stubs(:exec)
-        mock_connection.stubs(:finished?).returns(false)
 
-        # Mock the persist_record SQL execution
-        result_mock = mock('result')
-        result_mock.stubs(:first).returns({ 'id' => '123' })
-        result_mock.expects(:clear)
-        mock_connection.stubs(:exec_params).returns(result_mock)
+        # Mock adapter-specific methods
+        if Chronicles.config.adapter == :postgresql
+          mock_connection.stubs(:type_map_for_results=)
+          mock_connection.stubs(:exec)
+          mock_connection.stubs(:finished?).returns(false)
+
+          # Mock the persist_record SQL execution
+          result_mock = mock('result')
+          result_mock.stubs(:first).returns({ 'id' => '123' })
+          result_mock.expects(:clear)
+          mock_connection.stubs(:exec_params).returns(result_mock)
+        else # mysql
+          mock_connection.stubs(:ping).returns(true)
+          mock_connection.stubs(:execute)
+          mock_connection.stubs(:last_insert_id).returns(123)
+        end
 
         @processor.instance_variable_set(:@connection, mock_connection)
         @processor.stubs(:ensure_table_exists)
@@ -261,22 +275,32 @@ module Whodunit
 
       def mock_connection_batch
         mock_connection = mock('connection')
-        mock_connection.stubs(:type_map_for_results=)
-        mock_connection.stubs(:exec)
-        mock_connection.stubs(:finished?).returns(false)
 
-        # Create a special result mock that actually modifies the records
-        result_mock = Object.new
-        def result_mock.each_with_index
-          # Simulate the database returning IDs
-          yield({ 'id' => '101' }, 0)
-          yield({ 'id' => '102' }, 1)
-        end
+        # Mock adapter-specific methods
+        if Chronicles.config.adapter == :postgresql
+          mock_connection.stubs(:type_map_for_results=)
+          mock_connection.stubs(:exec)
+          mock_connection.stubs(:finished?).returns(false)
 
-        def result_mock.clear
-          # Mock clear method
+          # Create a special result mock that actually modifies the records
+          result_mock = Object.new
+          def result_mock.each_with_index
+            # Simulate the database returning IDs
+            yield({ 'id' => '101' }, 0)
+            yield({ 'id' => '102' }, 1)
+          end
+
+          def result_mock.clear
+            # Mock clear method
+          end
+          mock_connection.stubs(:exec_params).returns(result_mock)
+        else # mysql
+          mock_connection.stubs(:ping).returns(true)
+          # For MySQL batch, simulate multiple executes with incrementing last_insert_id
+          mock_connection.stubs(:execute)
+          # Use expects to track calls and return incremented IDs
+          mock_connection.expects(:last_insert_id).twice.returns(101, 102)
         end
-        mock_connection.stubs(:exec_params).returns(result_mock)
 
         @processor.instance_variable_set(:@connection, mock_connection)
         @processor.stubs(:ensure_table_exists)
