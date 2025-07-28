@@ -111,9 +111,21 @@ jobs:
             sudo apt-get -yqq install libmariadb-dev
             # Wait for MySQL to be ready
             export MYSQL_PWD=mysql
-            until mysqladmin ping -h localhost -P 3306 -u root --silent; do
-              echo "Waiting for MySQL..."
+            echo "Checking MySQL container status..."
+            docker ps | grep mysql || echo "No MySQL container found"
+            echo "Waiting for MySQL to accept connections..."
+            timeout=60
+            counter=0
+            until mysqladmin ping -h localhost -P 3306 -u root --silent 2>/dev/null; do
+              echo "Waiting for MySQL... ($counter/$timeout)"
               sleep 2
+              counter=$((counter+2))
+              if [ $counter -ge $timeout ]; then
+                echo "MySQL failed to start within $timeout seconds"
+                echo "MySQL service status:"
+                docker logs mysql-service 2>/dev/null || echo "Could not get MySQL logs"
+                exit 1
+              fi
             done
             echo "MySQL is ready"
           fi
@@ -180,9 +192,21 @@ jobs:
           elif [ "${{ matrix.adapter }}" = "mysql" ]; then
             sudo apt-get -yqq install libmariadb-dev
             export MYSQL_PWD=mysql
-            until mysqladmin ping -h localhost -P 3306 -u root --silent; do
-              echo "Waiting for MySQL..."
+            echo "Checking MySQL container status..."
+            docker ps | grep mysql || echo "No MySQL container found"
+            echo "Waiting for MySQL to accept connections..."
+            timeout=60
+            counter=0
+            until mysqladmin ping -h localhost -P 3306 -u root --silent 2>/dev/null; do
+              echo "Waiting for MySQL... ($counter/$timeout)"
               sleep 2
+              counter=$((counter+2))
+              if [ $counter -ge $timeout ]; then
+                echo "MySQL failed to start within $timeout seconds"
+                echo "MySQL service status:"
+                docker logs mysql-service 2>/dev/null || echo "Could not get MySQL logs"
+                exit 1
+              fi
             done
             echo "MySQL is ready"
           fi
