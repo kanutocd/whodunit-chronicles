@@ -211,13 +211,7 @@ jobs:
             sudo apt-get -yqq install libmariadb-dev
             export MYSQL_PWD=mysql
             echo "Checking MySQL container status..."
-            for i in $(seq 1 10); do
-              mysqladmin ping -uroot -p${MYSQL_PWD} && break
-              echo "Waiting for MySQL... ($i/10)"
-              sleep 5
-            done
-            mysqladmin ping -uroot -p${MYSQL_PWD} || exit 1
-            echo "MySQL is ready and accepting connections"
+            sleep 5
           fi
 
       - name: Run adapter-specific tests
