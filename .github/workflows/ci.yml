@@ -211,11 +211,12 @@ jobs:
             sudo apt-get -yqq install libmariadb-dev
             export MYSQL_PWD=mysql
             echo "Checking MySQL container status..."
-
-            until mysqladmin status -h 0.0.0.0 -P 3306 -u root -p$MYSQL_PWD 2>/dev/null; do
-              echo "Waiting for MySQL to accept connections..."
-              sleep 2
+            for i in $(seq 1 10); do
+              mysqladmin ping -uroot -p${MYSQL_PWD} && break
+              echo "Waiting for MySQL... ($i/10)"
+              sleep 5
             done
+            mysqladmin ping -uroot -p${MYSQL_PWD} || exit 1
             echo "MySQL is ready and accepting connections"
           fi
 
