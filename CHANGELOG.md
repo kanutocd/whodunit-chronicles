@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.2.0] - 2025-01-28
+
+### Added
+
+- **MySQL/MariaDB Support**: Complete multi-database adapter architecture
+  - MySQL adapter using trilogy gem for high-performance connections
+  - Binary log streaming support for MySQL change capture
+  - Cross-database compatibility testing
+- **Enhanced Testing Suite**: Comprehensive test coverage improvements
+  - New test files: `table_test.rb`, `connection_test.rb`, `persistence_test.rb`
+  - Enhanced PostgreSQL adapter tests with connection and replication scenarios
+  - Increased line coverage from 91.28% to 97.29% (+6.01 percentage points)
+  - 227 tests with 552 assertions providing robust validation
+- **Ruby 3.4+ Compatibility**: Forward compatibility improvements
+  - Added `bigdecimal` dependency for Ruby 3.4+ support
+  - Explicit dependency management for removed stdlib components
+- **CI/CD Enhancements**: Improved automation and quality gates
+  - Matrix testing across PostgreSQL and MySQL databases
+  - Enhanced MySQL integration testing with proper connection handling
+  - Security scanning integration and automated dependency updates
+
+### Changed
+
+- **Architecture Refactoring**: Modular component extraction
+  - Extracted AuditProcessor into separate, focused components
+  - Improved service layer with multi-adapter support patterns
+  - Enhanced configuration system supporting both PostgreSQL and MySQL
+- **Database Adapter Pattern**: Extensible multi-database support
+  - Abstract adapter base class for consistent interface
+  - Database-specific implementations with optimized performance
+  - Unified change event system across different database types
+- **Test Infrastructure**: Comprehensive testing improvements
+  - Enhanced mock-based testing for complex database operations
+  - Improved test organization with better separation of concerns
+  - Integration test scenarios for real-world usage patterns
+
+### Fixed
+
+- **MySQL CI Integration**: Resolved connection and setup issues
+  - Fixed MySQL container configuration and health checks  
+  - Improved database readiness detection and timeout handling
+  - Enhanced error reporting and debugging for CI environments
+- **Dependency Management**: Ruby version compatibility
+  - Added explicit `bigdecimal ~> 3.1` dependency for Ruby 3.4+
+  - Resolved trilogy gem loading issues in newer Ruby versions
+  - Improved gem specification with proper version constraints
+
+### Technical Improvements
+
+- **Code Coverage**: Significant testing improvements
+  - Line coverage: 97.29% (647/665 lines covered)
+  - Branch coverage: 83.6% (158/189 branches covered)
+  - Comprehensive unit tests for all core modules
+- **Performance Optimizations**: Multi-adapter efficiency
+  - Database-specific SQL generation and parameter binding
+  - Optimized connection management across different adapters
+  - Efficient batch processing for both PostgreSQL and MySQL
+- **Error Handling**: Enhanced resilience and debugging
+  - Improved error messages and stack trace reporting
+  - Better handling of database-specific error conditions
+  - Enhanced logging for troubleshooting and monitoring
+
+### Development Experience
+
+- **Documentation**: Enhanced developer resources
+  - Updated README with MySQL/MariaDB configuration examples
+  - Improved inline documentation for multi-adapter usage
+  - Better error messages and troubleshooting guides
+- **Testing Framework**: Improved development workflow
+  - Faster test execution with better mock strategies
+  - More reliable CI/CD pipeline with matrix testing
+  - Enhanced debugging capabilities for test failures
+
+## [0.1.0] - 2025-01-21
+
 ### Added
 
 - Comprehensive GitHub Actions CI/CD pipeline with multi-Ruby testing
