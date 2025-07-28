@@ -110,7 +110,8 @@ jobs:
           elif [ "${{ matrix.database }}" = "mysql" ]; then
             sudo apt-get -yqq install libmariadb-dev
             # Wait for MySQL to be ready
-            until mysqladmin ping -h localhost -P 3306 -u root -pmysql --silent; do
+            export MYSQL_PWD=mysql
+            until mysqladmin ping -h localhost -P 3306 -u root --silent; do
               echo "Waiting for MySQL..."
               sleep 2
             done
@@ -178,7 +179,8 @@ jobs:
             echo "PostgreSQL is ready"
           elif [ "${{ matrix.adapter }}" = "mysql" ]; then
             sudo apt-get -yqq install libmariadb-dev
-            until mysqladmin ping -h localhost -P 3306 -u root -pmysql --silent; do
+            export MYSQL_PWD=mysql
+            until mysqladmin ping -h localhost -P 3306 -u root --silent; do
               echo "Waiting for MySQL..."
               sleep 2
             done
