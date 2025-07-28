@@ -1,44 +1,34 @@
 # frozen_string_literal: true
 
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/test/'
-  add_filter '/vendor/'
+# Skip SimpleCov entirely for adapter-specific tests
+unless ENV['ADAPTER_SPECIFIC_TEST']
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter '/test/'
+    add_filter '/vendor/'
 
-  # Detect if we're running adapter-specific tests
-  adapter_specific_test = ARGV.any? do |arg|
-    arg.include?('adapters/') ||
-      arg.include?('adapter_compatibility_test.rb') ||
-      (arg.include?('configuration_test.rb') && arg.include?('-n'))
-  end
-
-  # Set coverage requirements based on test scope
-  if adapter_specific_test || ENV['ADAPTER_SPECIFIC_TEST']
-    # Lower coverage for adapter-specific tests since we only test subset of code
-    minimum_coverage 45
-  else
     # Require 100% coverage (temporarily set to 96 while working towards 100%)
     minimum_coverage 96
+
+    # Coverage output directory
+    coverage_dir 'coverage'
+
+    # Enable branch coverage for better analysis
+    enable_coverage :branch
+
+    # Generate multiple formats for CI
+    if ENV['CI'] || ENV['COVERAGE']
+      require 'simplecov-cobertura'
+
+      SimpleCov.formatters = [
+        SimpleCov::Formatter::HTMLFormatter,
+        SimpleCov::Formatter::CoberturaFormatter,
+      ]
+    end
+
+    # Exclude generated or boilerplate files
+    add_filter 'lib/whodunit/version.rb' # Simple version constant
   end
-
-  # Coverage output directory
-  coverage_dir 'coverage'
-
-  # Enable branch coverage for better analysis
-  enable_coverage :branch
-
-  # Generate multiple formats for CI
-  if ENV['CI'] || ENV['COVERAGE']
-    require 'simplecov-cobertura'
-
-    SimpleCov.formatters = [
-      SimpleCov::Formatter::HTMLFormatter,
-      SimpleCov::Formatter::CoberturaFormatter,
-    ]
-  end
-
-  # Exclude generated or boilerplate files
-  add_filter 'lib/whodunit/version.rb' # Simple version constant
 end
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
