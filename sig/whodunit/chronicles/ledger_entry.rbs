@@ -1,0 +1,22 @@
+module Whodunit
+  module Chronicles
+    class LedgerEntry < Data
+      attr_reader event_id: String
+      attr_reader occurred_at: untyped
+      attr_reader recorded_at: untyped
+      attr_reader namespace: String
+      attr_reader entity: String
+      attr_reader identity: untyped
+      attr_reader operation: Symbol
+      attr_reader actor: untyped
+      attr_reader changes: untyped
+      attr_reader metadata: Hash[untyped, untyped]
+      attr_reader payload: Hash[untyped, untyped]
+
+      def self.from_change_event: (::CDC::Core::ChangeEvent event, ?clock: untyped) -> LedgerEntry
+      def self.from_event: (::CDC::Core::ChangeEvent event, ?clock: untyped) -> LedgerEntry
+      def to_h: () -> Hash[Symbol, untyped]
+      def ordering_identity: () -> String
+    end
+  end
+end

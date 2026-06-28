@@ -1,0 +1,9 @@
+module Whodunit
+  module Chronicles
+    class CLI
+      def self.run: (Array[String] argv, ?out: untyped, ?err: untyped) -> Integer
+      def initialize: (argv: Array[String], out: untyped, err: untyped) -> void
+      def run: () -> Integer
+    end
+  end
+end

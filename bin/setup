@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+gem install bundler --no-document || true
+bundle install

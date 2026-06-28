@@ -1,0 +1,18 @@
+module Whodunit
+  module Chronicles
+    module Ledgers
+      class SQLiteLedger < Ledger
+        DEFAULT_TABLE: String
+
+        attr_reader path: String
+        attr_reader table_name: String
+
+        def initialize: (path: String, ?table_name: String, ?connection: untyped) -> void
+        def prepare!: () -> SQLiteLedger
+        def ensure_indexes!: () -> SQLiteLedger
+        def append: (LedgerEntry entry) -> LedgerEntry
+        def status: () -> Hash[Symbol, untyped]
+      end
+    end
+  end
+end

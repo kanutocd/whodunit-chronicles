@@ -1,0 +1,13 @@
+module Whodunit
+  module Chronicles
+    class Ledger
+      def prepare!: () -> self
+      def ensure_indexes!: () -> self
+      def migrate!: () -> self
+      def verify: () -> bool
+      def status: () -> Hash[Symbol, untyped]
+      def partition_for: (LedgerEntry entry) -> Ledger
+      def append: (LedgerEntry entry) -> untyped
+    end
+  end
+end

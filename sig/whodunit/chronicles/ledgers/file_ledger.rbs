@@ -1,0 +1,14 @@
+module Whodunit
+  module Chronicles
+    module Ledgers
+      class FileLedger < Ledger
+        attr_reader path: String
+
+        def initialize: (path: String) -> void
+        def prepare!: () -> FileLedger
+        def append: (LedgerEntry entry) -> LedgerEntry
+        def entries: () -> Array[Hash[untyped, untyped]]
+      end
+    end
+  end
+end

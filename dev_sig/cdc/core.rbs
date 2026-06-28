@@ -1,0 +1,47 @@
+# Minimal cdc-core surface used by whodunit-chronicles RBS validation.
+# Runtime behavior is provided by the cdc-core gem dependency.
+module CDC
+  module Core
+    class Processor
+      def start: () -> self
+      def stop: () -> self
+      def flush: () -> self
+      def healthy?: () -> bool
+      def process: (ChangeEvent event) -> ProcessorResult
+    end
+
+    class ProcessorResult
+      def self.success: (?ChangeEvent event, ?metadata: Hash[untyped, untyped]) -> ProcessorResult
+      def self.failure: (Exception error, ?event: ChangeEvent?, ?reason: String?, ?retryable: bool?, ?processor: String?, ?failed_at: String?, ?metadata: Hash[untyped, untyped]?) -> ProcessorResult
+      def success?: () -> bool
+      def failure?: () -> bool
+      def retryable?: () -> bool
+    end
+
+    class ChangeEvent
+      attr_reader operation: Symbol
+      attr_reader schema: String
+      attr_reader table: String
+      attr_reader old_values: Hash[untyped, untyped]?
+      attr_reader new_values: Hash[untyped, untyped]?
+      attr_reader primary_key: Hash[untyped, untyped]?
+      attr_reader transaction_id: untyped
+      attr_reader commit_lsn: String?
+      attr_reader sequence_number: Integer?
+      attr_reader occurred_at: Time?
+      attr_reader metadata: EventMetadata
+
+      def changes: () -> Array[ColumnChange]
+      def to_h: () -> Hash[untyped, untyped]
+    end
+
+    class EventMetadata
+      def []: (String | Symbol key) -> untyped
+      def to_h: () -> Hash[untyped, untyped]
+    end
+
+    class ColumnChange
+      def to_h: () -> Hash[untyped, untyped]
+    end
+  end
+end

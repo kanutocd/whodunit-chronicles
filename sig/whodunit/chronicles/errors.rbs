@@ -1,0 +1,15 @@
+module Whodunit
+  module Chronicles
+    class Error < StandardError
+    end
+
+    class LedgerError < Error
+    end
+
+    class AppendError < LedgerError
+    end
+
+    class ConfigurationError < Error
+    end
+  end
+end

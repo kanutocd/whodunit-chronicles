@@ -1,0 +1,10 @@
+module Whodunit
+  module Chronicles
+    class Chronicler < ::CDC::Core::Processor
+      attr_reader ledger: untyped
+
+      def initialize: (ledger: untyped, ?prepare: bool, ?ensure_indexes: bool, ?clock: untyped) -> void
+      def process: (::CDC::Core::ChangeEvent event) -> ::CDC::Core::ProcessorResult
+    end
+  end
+end

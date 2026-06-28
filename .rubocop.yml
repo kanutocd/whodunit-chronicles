@@ -1,0 +1,16 @@
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  Exclude:
+    - vendor/**/*
+
+Style/Documentation:
+  Enabled: true
+Metrics/BlockLength:
+  Exclude:
+    - test/**/*
+    - Rakefile

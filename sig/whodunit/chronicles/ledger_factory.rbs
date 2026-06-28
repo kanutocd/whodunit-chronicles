@@ -1,0 +1,9 @@
+module Whodunit
+  module Chronicles
+    class LedgerFactory
+      def self.build: (Hash[untyped, untyped] config) -> Ledger
+      def initialize: (Hash[untyped, untyped] config) -> void
+      def build: () -> Ledger
+    end
+  end
+end

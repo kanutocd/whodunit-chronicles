@@ -1,0 +1,6 @@
+--title "whodunnit-chronicles API Documentation"
+--readme README.md
+--title whodunit-chronicles API Documentation
+lib/**/*.rb
+-
+CHANGELOG.md

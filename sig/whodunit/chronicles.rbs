@@ -1,0 +1,5 @@
+module Whodunit
+  module Chronicles
+    VERSION: String
+  end
+end
