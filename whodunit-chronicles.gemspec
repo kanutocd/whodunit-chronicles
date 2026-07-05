@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   DESC
   spec.homepage = 'https://github.com/kanutocd/whodunit-chronicles'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>= 3.4.0'
+  spec.required_ruby_version = '>= 3.4'
 
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
   spec.metadata['homepage_uri'] = spec.homepage
