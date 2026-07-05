@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'tmpdir'
 require 'whodunit/chronicles/ledgers/sqlite_ledger'
 
 class SQLiteLedgerTest < Minitest::Test
@@ -76,11 +77,64 @@ end
 
 class SQLiteLedgerLazyConnectionTest < Minitest::Test
   def test_lazy_connection_uses_sqlite3_database
-    ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: 'lazy.db')
+    with_sqlite_path do |path|
+      ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: path)
 
-    ledger.prepare!
+      ledger.prepare!
 
-    assert ledger.status.fetch(:prepared)
+      assert ledger.status.fetch(:prepared)
+    end
+  end
+
+  def test_appends_entry_to_real_database
+    with_sqlite_path do |path|
+      ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: path)
+      ledger.prepare!
+
+      entry = sample_entry
+      assert_same entry, ledger.append(entry)
+
+      row = SQLite3::Database.new(path).execute(<<~SQL).first
+        SELECT event_id, namespace, entity, identity, operation, actor, changes, metadata, payload
+        FROM whodunit_chronicles_entries
+      SQL
+
+      assert_equal entry.event_id, row[0]
+      assert_equal 'public', row[1]
+      assert_equal 'users', row[2]
+      assert_equal '{"id":1}', row[3]
+      assert_equal 'insert', row[4]
+      assert_equal '{"id":42}', row[5]
+      assert_includes row[6], '"name":"id"'
+      assert_includes row[7], '"transaction_id":"tx-1"'
+      assert_includes row[8], '"table":"users"'
+    end
+  end
+
+  def test_status_counts_entries_in_custom_table
+    with_sqlite_path do |path|
+      ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: path, table_name: 'audit_entries')
+      ledger.prepare!
+      ledger.append(sample_entry)
+
+      assert_equal(
+        { adapter: 'sqlite', path: path, table_name: 'audit_entries', prepared: true, entries: 1 },
+        ledger.status
+      )
+    end
+  end
+
+  def test_unique_event_index_rejects_duplicate_entries
+    with_sqlite_path do |path|
+      ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: path)
+      ledger.prepare!
+      ledger.ensure_indexes!
+
+      ledger.append(sample_entry)
+
+      assert_raises(SQLite3::ConstraintException) { ledger.append(sample_entry) }
+      assert_equal 1, ledger.status.fetch(:entries)
+    end
   end
 
   def test_append_serializes_non_time_values
@@ -103,5 +157,13 @@ class SQLiteLedgerLazyConnectionTest < Minitest::Test
     ledger.append(entry)
 
     assert_equal '2026-01-01', connection.calls.first.last[1]
+  end
+
+  private
+
+  def with_sqlite_path
+    Dir.mktmpdir('whodunit-chronicles-sqlite') do |directory|
+      yield File.join(directory, 'ledger.db')
+    end
   end
 end

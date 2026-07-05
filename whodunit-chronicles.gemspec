@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'cdc-core', '>= 0.1'
+  spec.add_dependency 'sqlite3', '>= 2.0'
 end
