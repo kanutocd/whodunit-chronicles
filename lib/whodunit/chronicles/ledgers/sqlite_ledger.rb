@@ -2,6 +2,7 @@
 
 require 'json'
 require 'time'
+require_relative '../errors'
 require_relative '../ledger'
 
 module Whodunit
@@ -69,6 +70,7 @@ module Whodunit
         # Append one ledger entry.
         #
         # @param entry [LedgerEntry] entry to append
+        # @raise [AppendError] when SQLite rejects a duplicate event_id
         # @return [LedgerEntry] appended entry
         def append(entry)
           connection.execute(<<~SQL, bind_values(entry))
@@ -78,6 +80,10 @@ module Whodunit
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           SQL
           entry
+        rescue StandardError => e
+          raise unless sqlite_constraint_error?(e)
+
+          raise AppendError, "duplicate ledger event_id: #{entry.event_id}"
         end
 
         # Return lightweight operational status for this ledger.
@@ -139,6 +145,11 @@ module Whodunit
         # Count persisted entries.
         def count_entries
           connection.execute("SELECT COUNT(*) FROM #{quoted_table_name}").first.first
+        end
+
+        # Return whether an error is SQLite's unique constraint failure.
+        def sqlite_constraint_error?(error)
+          !!(defined?(SQLite3::ConstraintException) && error.is_a?(SQLite3::ConstraintException))
         end
 
         # Quote a SQLite identifier.

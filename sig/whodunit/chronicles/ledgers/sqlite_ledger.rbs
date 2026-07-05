@@ -20,6 +20,7 @@ module Whodunit
         def serialize_time: (untyped value) -> String
         def prepared?: () -> bool
         def count_entries: () -> Integer
+        def sqlite_constraint_error?: (StandardError error) -> bool
         def quote_identifier: (untyped identifier) -> String
         def quoted_table_name: () -> String
         def index_name: (Symbol suffix) -> String

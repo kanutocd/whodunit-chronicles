@@ -94,7 +94,9 @@ ledger.prepare!
 ledger.ensure_indexes!
 ```
 
-The `sqlite3` gem is loaded lazily when `SQLiteLedger` opens a real SQLite database. Tests and advanced users may inject a compatible connection.
+`SQLiteLedger` depends on the `sqlite3` gem. Tests and advanced users may inject a compatible connection.
+
+`ensure_indexes!` creates a unique index on `event_id`. Appending the same event more than once is not idempotent: SQLite rejects the duplicate row, and `SQLiteLedger#append` raises `Whodunit::Chronicles::AppendError`.
 
 ## CLI
 

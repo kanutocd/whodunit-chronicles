@@ -23,6 +23,12 @@ class SQLiteLedgerTest < Minitest::Test
     end
   end
 
+  class FailingConnection
+    def execute(_sql, _binds = nil)
+      raise RuntimeError, 'database offline'
+    end
+  end
+
   def test_prepare_creates_table
     connection = FakeConnection.new
     ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: 'audit.db', connection: connection)
@@ -51,6 +57,14 @@ class SQLiteLedgerTest < Minitest::Test
     assert_includes sql, 'INSERT INTO'
     assert_equal entry.event_id, binds.first
     assert_equal '{"id":1}', binds[5]
+  end
+
+  def test_append_reraises_non_constraint_errors
+    ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: 'audit.db', connection: FailingConnection.new)
+
+    error = assert_raises(RuntimeError) { ledger.append(sample_entry) }
+
+    assert_equal 'database offline', error.message
   end
 
   def test_status_reports_prepared_ledger
@@ -124,7 +138,7 @@ class SQLiteLedgerLazyConnectionTest < Minitest::Test
     end
   end
 
-  def test_unique_event_index_rejects_duplicate_entries
+  def test_unique_event_index_raises_append_error_for_duplicate_entries
     with_sqlite_path do |path|
       ledger = Whodunit::Chronicles::Ledgers::SQLiteLedger.new(path: path)
       ledger.prepare!
@@ -132,7 +146,10 @@ class SQLiteLedgerLazyConnectionTest < Minitest::Test
 
       ledger.append(sample_entry)
 
-      assert_raises(SQLite3::ConstraintException) { ledger.append(sample_entry) }
+      error = assert_raises(Whodunit::Chronicles::AppendError) { ledger.append(sample_entry) }
+
+      assert_includes error.message, sample_entry.event_id
+      assert_instance_of SQLite3::ConstraintException, error.cause
       assert_equal 1, ledger.status.fetch(:entries)
     end
   end
