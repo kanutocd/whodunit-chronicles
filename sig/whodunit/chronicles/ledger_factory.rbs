@@ -4,6 +4,10 @@ module Whodunit
       def self.build: (Hash[untyped, untyped] config) -> Ledger
       def initialize: (Hash[untyped, untyped] config) -> void
       def build: () -> Ledger
+
+      private
+
+      def stringify_keys: (untyped value) -> untyped
     end
   end
 end

@@ -12,6 +12,17 @@ module Whodunit
         def ensure_indexes!: () -> SQLiteLedger
         def append: (LedgerEntry entry) -> LedgerEntry
         def status: () -> Hash[Symbol, untyped]
+
+        private
+
+        def connection: () -> untyped
+        def bind_values: (LedgerEntry entry) -> Array[untyped]
+        def serialize_time: (untyped value) -> String
+        def prepared?: () -> bool
+        def count_entries: () -> Integer
+        def quote_identifier: (untyped identifier) -> String
+        def quoted_table_name: () -> String
+        def index_name: (Symbol suffix) -> String
       end
     end
   end

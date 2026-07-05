@@ -2,5 +2,6 @@
 
 target :lib do
   signature 'sig'
+  library 'cdc-core'
   check 'lib'
 end

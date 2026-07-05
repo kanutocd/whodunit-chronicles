@@ -13,10 +13,50 @@ module Whodunit
       attr_reader metadata: Hash[untyped, untyped]
       attr_reader payload: Hash[untyped, untyped]
 
+      def initialize: (
+        event_id: String,
+        occurred_at: untyped,
+        recorded_at: untyped,
+        namespace: String?,
+        entity: String?,
+        identity: untyped,
+        operation: Symbol | String,
+        actor: untyped,
+        changes: untyped,
+        metadata: Hash[untyped, untyped],
+        payload: Hash[untyped, untyped]
+      ) -> void
+
+      def self.new: (
+        event_id: String,
+        occurred_at: untyped,
+        recorded_at: untyped,
+        namespace: String?,
+        entity: String?,
+        identity: untyped,
+        operation: Symbol | String,
+        actor: untyped,
+        changes: untyped,
+        metadata: Hash[untyped, untyped],
+        payload: Hash[untyped, untyped]
+      ) -> LedgerEntry
+
       def self.from_change_event: (::CDC::Core::ChangeEvent event, ?clock: untyped) -> LedgerEntry
       def self.from_event: (::CDC::Core::ChangeEvent event, ?clock: untyped) -> LedgerEntry
       def to_h: () -> Hash[Symbol, untyped]
       def ordering_identity: () -> String
+      def members: () -> Array[Symbol]
+
+      private
+
+      def self.validate_change_event!: (::Object event) -> true
+      def self.event_id_for: (::CDC::Core::ChangeEvent event) -> String
+      def self.namespace_for: (::CDC::Core::ChangeEvent event) -> String?
+      def self.entity_for: (::CDC::Core::ChangeEvent event) -> String?
+      def self.actor_for: (::CDC::Core::ChangeEvent event) -> untyped
+      def self.changes_for: (::CDC::Core::ChangeEvent event) -> untyped
+      def self.metadata_for: (::CDC::Core::ChangeEvent event) -> Hash[untyped, untyped]
+      def self.source_position_for: (::CDC::Core::ChangeEvent event) -> untyped
     end
   end
 end

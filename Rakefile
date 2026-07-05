@@ -22,22 +22,9 @@ task :coverage do
 end
 
 namespace :rbs do
-  desc 'Validate RBS signature syntax'
+  desc "Validate signatures and statically check the implementation"
   task :validate do
-    require 'rbs'
-
-    loader = RBS::EnvironmentLoader.new
-    Dir.glob('{dev_sig,sig}/**/*.rbs').each do |file|
-      source = RBS::Buffer.new(name: file, content: File.read(file))
-      RBS::Parser.parse_signature(source)
-      loader.add(path: Pathname(file))
-    end
-
-    RBS::Environment.from_loader(loader).resolve_type_names
-
-    FileUtils.mkdir_p('coverage')
-    File.write('coverage/rbs.txt', "RBS validation: PASS\n")
-    puts 'RBS validation: PASS'
+    sh "bundle exec steep check --severity-level=error"
   end
 end
 

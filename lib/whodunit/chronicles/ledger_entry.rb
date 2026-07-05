@@ -5,7 +5,7 @@ require 'cdc_core'
 module Whodunit
   module Chronicles
     # Immutable audit-domain representation of one CDC::Core::ChangeEvent.
-    LedgerEntry = Data.define(
+    class LedgerEntry < Data.define(
       :event_id,
       :occurred_at,
       :recorded_at,
@@ -17,7 +17,7 @@ module Whodunit
       :changes,
       :metadata,
       :payload
-    ) do
+    )
       # Build a ledger entry from a normalized CDC change event.
       #
       # @param event [CDC::Core::ChangeEvent] normalized CDC event

@@ -5,6 +5,10 @@ module Whodunit
 
       def initialize: (ledger: untyped, ?prepare: bool, ?ensure_indexes: bool, ?clock: untyped) -> void
       def process: (::CDC::Core::ChangeEvent event) -> ::CDC::Core::ProcessorResult
+
+      private
+
+      def partition_for: (LedgerEntry entry) -> untyped
     end
   end
 end

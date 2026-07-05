@@ -4,6 +4,13 @@ module Whodunit
       def self.run: (Array[String] argv, ?out: untyped, ?err: untyped) -> Integer
       def initialize: (argv: Array[String], out: untyped, err: untyped) -> void
       def run: () -> Integer
+
+      private
+
+      def execute_ledger_command: (Ledger ledger, String command) -> Integer
+      def load_config: (String path) -> Hash[untyped, untyped]
+      def format_status: (Hash[untyped, untyped] status) -> String
+      def usage: (Integer code) -> Integer
     end
   end
 end
