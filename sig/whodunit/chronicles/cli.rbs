@@ -7,9 +7,10 @@ module Whodunit
 
       private
 
-      def execute_ledger_command: (Ledger ledger, String command) -> Integer
+      def execute_ledger_command: (untyped ledger, String command, Array[String] options) -> Integer
       def load_config: (String path) -> Hash[untyped, untyped]
-      def format_status: (Hash[untyped, untyped] status) -> String
+      def format_status: (Hash[untyped, untyped] status, Array[String] options) -> String
+      def ensure_supported!: (untyped ledger, Symbol method_name) -> true
       def usage: (Integer code) -> Integer
     end
   end

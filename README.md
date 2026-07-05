@@ -110,12 +110,31 @@ whodunit-chronicles ledger verify config.yml
 whodunit-chronicles ledger status config.yml
 ```
 
-Example config:
+Example configs:
+
+```yaml
+ledger:
+  adapter: memory
+```
+
+```yaml
+ledger:
+  adapter: file
+  path: chronicles.ndjson
+```
 
 ```yaml
 ledger:
   adapter: sqlite
   path: chronicles.db
+  table_name: whodunit_chronicles_entries
+```
+
+Status can be printed as human-readable lines or JSON:
+
+```bash
+whodunit-chronicles ledger status config.yml
+whodunit-chronicles ledger status config.yml --json
 ```
 
 ## Extension direction

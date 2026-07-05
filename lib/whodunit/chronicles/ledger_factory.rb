@@ -29,15 +29,17 @@ module Whodunit
       # @return [Ledger] configured ledger
       def build
         ledger = stringify_keys(@config.fetch('ledger', @config))
-        case ledger.fetch('adapter')
+        adapter = required_value(ledger, 'adapter')
+
+        case adapter
         when 'memory'
           Ledgers::MemoryLedger.new
         when 'file'
-          Ledgers::FileLedger.new(path: ledger.fetch('path'))
+          Ledgers::FileLedger.new(path: required_value(ledger, 'path'))
         when 'sqlite'
-          Ledgers::SQLiteLedger.new(path: ledger.fetch('path'), table_name: ledger.fetch('table_name', Ledgers::SQLiteLedger::DEFAULT_TABLE))
+          Ledgers::SQLiteLedger.new(path: required_value(ledger, 'path'), table_name: ledger.fetch('table_name', Ledgers::SQLiteLedger::DEFAULT_TABLE))
         else
-          raise ConfigurationError, "unsupported ledger adapter: #{ledger.fetch('adapter', nil).inspect}"
+          raise ConfigurationError, "unsupported ledger adapter: #{adapter.inspect}"
         end
       end
 
@@ -51,6 +53,13 @@ module Whodunit
         else
           value
         end
+      end
+
+      # Fetch a required config value with a user-facing error.
+      def required_value(config, key)
+        config.fetch(key)
+      rescue KeyError
+        raise ConfigurationError, "missing ledger #{key}"
       end
     end
   end

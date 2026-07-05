@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
 require 'yaml'
+require_relative 'errors'
 require_relative 'ledger_factory'
 
 module Whodunit
@@ -41,10 +43,11 @@ module Whodunit
         namespace = @argv.shift
         command = @argv.shift
         config_path = @argv.shift
+        options = @argv.dup
         return usage(1) unless namespace == 'ledger' && command && config_path
 
         ledger = LedgerFactory.build(load_config(config_path))
-        execute_ledger_command(ledger, command)
+        execute_ledger_command(ledger, command, options)
       rescue StandardError => e
         @err.puts(e.message)
         1
@@ -53,22 +56,38 @@ module Whodunit
       private
 
       # Execute a ledger lifecycle command.
-      def execute_ledger_command(ledger, command)
+      def execute_ledger_command(ledger, command, options)
         case command
         when 'prepare'
+          return usage(1) unless options.empty?
+
+          ensure_supported!(ledger, :prepare!)
           ledger.prepare!
           @out.puts('prepared')
         when 'migrate'
+          return usage(1) unless options.empty?
+
+          ensure_supported!(ledger, :migrate!)
           ledger.migrate!
           @out.puts('migrated')
         when 'ensure-indexes', 'indexes'
+          return usage(1) unless options.empty?
+
+          ensure_supported!(ledger, :ensure_indexes!)
           ledger.ensure_indexes!
           @out.puts('indexes ensured')
         when 'verify'
-          ledger.verify
+          return usage(1) unless options.empty?
+
+          ensure_supported!(ledger, :verify)
+          raise LedgerError, 'ledger verification failed' unless ledger.verify
+
           @out.puts('verified')
         when 'status'
-          @out.puts(format_status(ledger.status))
+          return usage(1) unless options.empty? || options == ['--json']
+
+          ensure_supported!(ledger, :status)
+          @out.puts(format_status(ledger.status, options))
         else
           return usage(1)
         end
@@ -81,8 +100,17 @@ module Whodunit
       end
 
       # Format status for humans.
-      def format_status(status)
+      def format_status(status, options)
+        return JSON.pretty_generate(status) if options == ['--json']
+
         status.map { |key, value| "#{key}: #{value.inspect}" }.join("\n")
+      end
+
+      # Ensure a ledger supports an operational method.
+      def ensure_supported!(ledger, method_name)
+        return true if ledger.respond_to?(method_name)
+
+        raise LedgerError, "ledger does not support #{method_name}"
       end
 
       # Print usage information.
@@ -94,6 +122,7 @@ module Whodunit
             whodunit-chronicles ledger ensure-indexes CONFIG
             whodunit-chronicles ledger verify CONFIG
             whodunit-chronicles ledger status CONFIG
+            whodunit-chronicles ledger status CONFIG --json
         TEXT
         code
       end

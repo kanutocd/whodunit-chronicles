@@ -8,6 +8,7 @@ module Whodunit
       private
 
       def stringify_keys: (untyped value) -> untyped
+      def required_value: (Hash[String, untyped] config, String key) -> untyped
     end
   end
 end
