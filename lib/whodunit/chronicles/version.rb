@@ -3,6 +3,6 @@
 module Whodunit
   module Chronicles
     # Gem version.
-    VERSION = '0.1.0'
+    VERSION = '0.4.0'
   end
 end

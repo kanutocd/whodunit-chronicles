@@ -1,6 +1,17 @@
 # whodunit-chronicles
 
+[![Gem Version](https://badge.fury.io/rb/whodunit-chronicles.svg)](https://badge.fury.io/rb/whodunit-chronicles)
+[![CI](https://github.com/kanutocd/whodunit-chronicles/workflows/CI/badge.svg)](https://github.com/kanutocd/whodunit-chronicles/actions)
+[![Ruby Version](https://img.shields.io/badge/ruby-%3E%3D%203.4-ruby.svg)](https://www.ruby-lang.org/en/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 `whodunit-chronicles` is the minimal audit sink for the Ruby CDC ecosystem. It has a runtime dependency on `cdc-core` and consumes `CDC::Core::ChangeEvent` directly.
+
+## Release status
+
+The currently published RubyGems release is `whodunit-chronicles` `0.3.0`, described as "The complete historical record of your data".
+
+The next release is a complete rewrite of the gem. This README describes the rewritten design: a smaller CDC-native audit sink centered on `CDC::Core::ChangeEvent`, immutable ledger entries, lightweight built-in ledgers, and extension gems for heavier storage targets.
 
 A `Chronicler` writes immutable `LedgerEntry` objects into any object that implements the `Ledger` contract.
 
@@ -139,7 +150,7 @@ whodunit-chronicles ledger status config.yml --json
 
 ## Extension direction
 
-Future storage books should be separate ledgers:
+Future storage targets and compatibility adapters should be separate gems:
 
 ```text
 whodunit-chronicles-postgres
@@ -150,4 +161,4 @@ whodunit-chronicles-snowflake
 whodunit-chronicles-paper_trail
 ```
 
-Each extension implements the same ledger contract.
+Storage extensions implement the same `Ledger` contract. Compatibility adapters may translate ledger entries into another ecosystem's expected shape.
