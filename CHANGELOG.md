@@ -19,3 +19,4 @@
 - Added JSON status output and stricter option validation to the ledger lifecycle CLI.
 - Improved CLI errors for malformed configuration, missing required ledger options, unsupported lifecycle methods, and failed verification.
 - Completed the Steep-backed RBS quality gate.
+- Added GitHub Actions workflows for generated YARD documentation and tagged RubyGems releases.
