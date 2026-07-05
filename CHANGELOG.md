@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.4.0 Unreleased
+## Unreleased
+
+## 0.4.0
 
 - Rebuilt as a minimal CDC audit sink.
 - Added `Chronicler` as a `CDC::Core::Processor`.
